@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -51,7 +52,9 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(platform("com.google.firebase:firebase-bom:32.7.0")) // Firebase BOM
-    implementation("com.google.firebase:firebase-auth-ktx")  // Firebase Auth
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(libs.androidx.navigation.runtime.android)
+    implementation(libs.androidx.navigation.compose.android)  // Firebase Auth
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
