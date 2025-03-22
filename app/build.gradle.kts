@@ -49,6 +49,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0")) // Firebase BOM
+    implementation("com.google.firebase:firebase-auth-ktx")  // Firebase Auth
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

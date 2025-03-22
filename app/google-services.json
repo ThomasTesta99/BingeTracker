@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "735779923715",
+    "project_id": "bingetracker-7e62a",
+    "storage_bucket": "bingetracker-7e62a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735779923715:android:4a8b29e24a9db1927deb36",
+        "android_client_info": {
+          "package_name": "com.example.bingetracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2Qp6uK3QWebbTOtlL-eAx9uacC5UvKZg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
