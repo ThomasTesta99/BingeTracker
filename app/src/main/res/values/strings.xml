@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">BingeTracker</string>
+
+
+    <!-- AUTH STRINGS -->
+    <string name="sign_up">Sign Up</string>
+    <string name="sign_up_switch_text">Already have an account? Sign in</string>
+
+    <string name="sign_in">Sign In</string>
+    <string name="sign_in_switch_text">Don\'t have an account? Sign Up</string>
+
+
 </resources>

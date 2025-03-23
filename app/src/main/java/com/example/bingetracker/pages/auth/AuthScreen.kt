@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.bingetracker.R
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.AuthState
 
@@ -45,12 +47,12 @@ fun SignUpScreen(
     onSwitchToSignIn: () -> Unit,
 ){
     AuthForm(
-        title = "Sign Up",
-        buttonText = "Sign Up",
+        title = stringResource(R.string.sign_up),
+        buttonText = stringResource(R.string.sign_up),
         authModel = authModel,
         onSubmit = {email, password -> authModel.signUp(email, password)},
         onAuthSuccess = onSignUpSuccess,
-        switchText = "Already have an account? Sign in",
+        switchText = stringResource(R.string.sign_up_switch_text),
         onSwitch = onSwitchToSignIn
     )
 }
@@ -62,12 +64,12 @@ fun SignInScreen(
     onSwitchToSignUp: () -> Unit,
 ){
     AuthForm(
-        title = "Sign In",
-        buttonText = "Sign In",
+        title = stringResource(R.string.sign_in),
+        buttonText = stringResource(R.string.sign_in),
         authModel = authModel,
         onSubmit = {email, password -> authModel.signIn(email, password)},
         onAuthSuccess = onSignInSuccess,
-        switchText = "Already have an account? Sign in",
+        switchText = stringResource(R.string.sign_in_switch_text),
         onSwitch = onSwitchToSignUp
     )
 }
@@ -101,7 +103,7 @@ fun AuthForm(
         TextField(
             value = password,
             onValueChange = {password = it},
-            label = { Text("password") }
+            label = { Text("Password") }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
