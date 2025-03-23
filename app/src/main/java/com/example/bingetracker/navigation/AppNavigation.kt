@@ -4,12 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.bingetracker.pages.auth.SignUpScreen
+import com.example.bingetracker.pages.HomeScreen
+import com.example.bingetracker.pages.auth.AuthScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController){
-    NavHost(navController, startDestination = "signup"){
-        composable("signup") { SignUpScreen {navController.navigate("home")}}
-        composable("home") {  }
+    NavHost(navController, startDestination = "auth"){
+        composable("auth") { AuthScreen {navController.navigate("home")} }
+        composable("home") { HomeScreen() }
     }
 }
