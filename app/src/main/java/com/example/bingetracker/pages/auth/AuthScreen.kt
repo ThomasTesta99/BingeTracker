@@ -50,10 +50,11 @@ fun SignUpScreen(
         title = stringResource(R.string.sign_up),
         buttonText = stringResource(R.string.sign_up),
         authModel = authModel,
-        onSubmit = {email, password -> authModel.signUp(email, password)},
+        onSubmit = {name, email, password -> authModel.signUp(name, email, password)},
         onAuthSuccess = onSignUpSuccess,
         switchText = stringResource(R.string.sign_up_switch_text),
-        onSwitch = onSwitchToSignIn
+        onSwitch = onSwitchToSignIn,
+        isSignUp = true,
     )
 }
 
@@ -67,7 +68,7 @@ fun SignInScreen(
         title = stringResource(R.string.sign_in),
         buttonText = stringResource(R.string.sign_in),
         authModel = authModel,
-        onSubmit = {email, password -> authModel.signIn(email, password)},
+        onSubmit = {_, email, password -> authModel.signIn(email, password)},
         onAuthSuccess = onSignInSuccess,
         switchText = stringResource(R.string.sign_in_switch_text),
         onSwitch = onSwitchToSignUp
@@ -79,11 +80,13 @@ fun AuthForm(
     title: String,
     buttonText: String,
     authModel: AuthModel,
-    onSubmit: (String, String) -> Unit,
+    onSubmit: (String, String, String) -> Unit,
     onAuthSuccess: () -> Unit,
     switchText: String,
-    onSwitch: () -> Unit
+    onSwitch: () -> Unit,
+    isSignUp: Boolean = false
 ){
+    var name by remember { mutableStateOf("") }
     var email by remember {mutableStateOf("")}
     var password by remember { mutableStateOf("") }
     val authState by authModel.authState.collectAsState()
@@ -94,6 +97,16 @@ fun AuthForm(
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(modifier = Modifier.height(16.dp))
+
+        if(isSignUp){
+            TextField(
+                value = name,
+                onValueChange = {name = it},
+                label = { Text("Name") }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         TextField(
             value = email,
             onValueChange = {email = it},
@@ -107,7 +120,7 @@ fun AuthForm(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {onSubmit(email, password)}) {
+        Button(onClick = {onSubmit(name, email, password)}) {
             Text(buttonText)
         }
 

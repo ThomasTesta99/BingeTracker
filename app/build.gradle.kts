@@ -54,7 +54,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0")) // Firebase BOM
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation(libs.androidx.navigation.runtime.android)
-    implementation(libs.androidx.navigation.compose.android)  // Firebase Auth
+    implementation(libs.androidx.navigation.compose.android)
+    implementation(libs.google.firebase.firestore.ktx)  // Firebase Auth
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
