@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.bingetracker"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -55,7 +55,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.navigation.compose.android)
-    implementation(libs.google.firebase.firestore.ktx)  // Firebase Auth
+    implementation(libs.google.firebase.firestore.ktx)
+    implementation(libs.google.firebase.auth.ktx)  // Firebase Auth
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
