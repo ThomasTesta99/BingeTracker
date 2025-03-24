@@ -8,7 +8,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.math.sign
 
 class AuthModel : ViewModel() {
 
@@ -27,7 +26,7 @@ class AuthModel : ViewModel() {
     fun signUp(name: String, email: String, password: String){
         _authState.value = AuthState.Loading
 
-        if (name.isNullOrEmpty() || email.isNullOrEmpty() || password.isNullOrEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Log.e("AuthModel", "Name or Email or password is empty")
             return
         }

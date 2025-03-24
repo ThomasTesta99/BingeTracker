@@ -22,7 +22,6 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                 popUpTo("home") { inclusive = true } // Clears backstack
             }
         }
-
     }
 
     Column {
