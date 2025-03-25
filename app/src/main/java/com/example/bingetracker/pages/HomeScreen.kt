@@ -12,13 +12,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.bingetracker.BuildConfig
 import com.example.bingetracker.models.AuthModel
+import java.util.Properties
 
 @Composable
 fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
     val user by authModel.currentUser.collectAsState()
     val currentUserAuth by authModel.currentUserAuth.collectAsState()
-
+    val api_key = BuildConfig.TMDB_API_KEY
     // Navigate to auth screen when logged out
     LaunchedEffect(currentUserAuth) {
         if (currentUserAuth == null) {
