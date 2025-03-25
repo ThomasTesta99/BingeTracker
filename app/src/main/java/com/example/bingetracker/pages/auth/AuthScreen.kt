@@ -58,7 +58,7 @@ fun SignUpScreen(
         title = stringResource(R.string.sign_up),
         buttonText = stringResource(R.string.sign_up),
         authModel = authModel,
-        onSubmit = { name, email, password -> authModel.signUp(name, email, password) },
+        onSubmit = { name, email, password -> authModel.signUpUser(name, email, password) },
         switchText = stringResource(R.string.sign_up_switch_text),
         onSwitch = onSwitchToSignIn,
         isSignUp = true
@@ -74,7 +74,7 @@ fun SignInScreen(
         title = stringResource(R.string.sign_in),
         buttonText = stringResource(R.string.sign_in),
         authModel = authModel,
-        onSubmit = { _, email, password -> authModel.signIn(email, password) },
+        onSubmit = { _, email, password -> authModel.signInUser(email, password) },
         switchText = stringResource(R.string.sign_in_switch_text),
         onSwitch = onSwitchToSignUp
     )
