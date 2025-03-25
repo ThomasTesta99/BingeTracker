@@ -30,18 +30,18 @@ fun PopularEntertainment(){
         Text("Current Binges Section")
 
         // Popular Movies Section
-//        Text("Popular Movies")
-//        LazyColumn {
-//            items(popularMovies.value){ movie ->
-//                Text(movie.title)
-//            }
-//        }
-//
-//        Text("Popular TV Shows")
-//        LazyColumn {
-//            items(popularTVShows.value){ TVshow ->
-//                Text(TVshow.title)
-//            }
-//        }
+        Text("Popular Movies")
+        LazyColumn {
+            items(popularMovies.value){ movie ->
+                Text(movie.title ?: "Unknown Movie Title")
+            }
+        }
+
+        Text("Popular TV Shows")
+        LazyColumn {
+            items(popularTVShows.value){ TVshow ->
+                Text(TVshow.title ?: "Unknown TV Show Title")
+            }
+        }
     }
 }

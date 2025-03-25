@@ -29,6 +29,7 @@ class EntertainmentModel {
     suspend fun getPopularTvShows(){
         try {
             val response = RetrofitClient.api.getPopularTVShows(apiKey)
+            Log.d("Entertainment Model", "${response}")
             _tvShowList.value = response.results
         } catch (e: Exception) {
             Log.e("Entertainment Model", "${e.message}")
