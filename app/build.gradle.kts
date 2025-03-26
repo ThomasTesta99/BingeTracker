@@ -66,12 +66,13 @@ dependencies {
     implementation(libs.google.firebase.auth.ktx)  // Firebase Auth
 
     // Retrofit dependencies
-    implementation("com.squareup.retrofit2:retrofit:2.9.0") // Retrofit core
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Gson converter
+    implementation(libs.retrofit) // Retrofit core
+    implementation(libs.converter.gson) // Gson converter
 
-    // OkHttp for networking (optional, but recommended)
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
