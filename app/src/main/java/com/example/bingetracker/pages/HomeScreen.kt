@@ -3,6 +3,7 @@ package com.example.bingetracker.pages
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,10 +30,29 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
     }
 
     Scaffold(
-        topBar = { SearchBar(searchQuery) { query ->
-            searchQuery = query
-            entertainmentModel.searchForEntertainment(query)
-        }},
+        topBar = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,  // Vertically align text and button
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp)
+            ) {
+                Text(
+                    text = "Welcome, ${user?.name}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Button(
+                    onClick = { authModel.logout() },
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text("Logout")
+                }
+            }
+        },
         bottomBar = { BottomNavBar() }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
@@ -42,16 +62,9 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                 }
                 user != null -> {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Welcome, ${user?.name}",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Button(
-                        onClick = { authModel.logout() },
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Logout")
+                    SearchBar(searchQuery) { query ->
+                        searchQuery = query
+                        entertainmentModel.searchForEntertainment(query)
                     }
 
                     Text(
@@ -60,7 +73,8 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                         } else {
                             "Popular Movies and TV Shows"
                         },
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(16.dp)
                     )
 
                     val movieResults by entertainmentModel.searchMovieResults.collectAsState()
