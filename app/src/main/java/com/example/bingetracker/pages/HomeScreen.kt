@@ -28,7 +28,7 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
     LaunchedEffect(currentUserAuth) {
         if (currentUserAuth == null) {
             navController.navigate("auth") {
-                popUpTo("home") { inclusive = true } // Clears backstack
+                popUpTo("home") { inclusive = true }
             }
         }
     }

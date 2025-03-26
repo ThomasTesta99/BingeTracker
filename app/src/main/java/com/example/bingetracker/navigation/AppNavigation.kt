@@ -36,7 +36,6 @@ import com.example.bingetracker.pages.auth.AuthScreen
 fun AppNavigation(navController: NavHostController, authModel: AuthModel){
     val user by authModel.currentUser.collectAsState()
 
-
     Scaffold (
         topBar = {
             user?.let { TopBar(it, authModel) }
@@ -68,14 +67,14 @@ fun BottomNavBar(navController: NavHostController) {
             NavigationBarItem(
                 icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
                 label = { Text("Home") },
-                selected = false, // Change this based on current route
+                selected = false,
                 onClick = { navController.navigate("home") }
             )
 
             NavigationBarItem(
                 icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Binges") },
                 label = { Text("Binges") },
-                selected = false, // Change this based on current route
+                selected = false,
                 onClick = { navController.navigate("binges") }
             )
         }
@@ -92,9 +91,8 @@ fun TopBar(user : User, authModel: AuthModel){
             .padding(top = 32.dp)
     ) {
         Text(
-            text = "Welcome, ${user?.name}",
+            text = "Welcome, ${user.name}",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f)
         )
 
