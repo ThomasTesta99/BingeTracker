@@ -74,17 +74,17 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                             "Popular Movies and TV Shows"
                         },
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center,
                     )
 
-                    val movieResults by entertainmentModel.searchMovieResults.collectAsState()
-                    val tvResults by entertainmentModel.searchTVResults.collectAsState()
-                    val popularMovies by entertainmentModel.movieList.collectAsState()
-                    val popularTVShows by entertainmentModel.tvShowList.collectAsState()
-
                     if (searchQuery.isNotBlank()) {
+                        val movieResults by entertainmentModel.searchMovieResults.collectAsState()
+                        val tvResults by entertainmentModel.searchTVResults.collectAsState()
                         Entertainment(entertainmentModel, movieResults, tvResults)
                     } else {
+                        val popularMovies by entertainmentModel.movieList.collectAsState()
+                        val popularTVShows by entertainmentModel.tvShowList.collectAsState()
                         Entertainment(entertainmentModel, popularMovies, popularTVShows)
                     }
                 }
