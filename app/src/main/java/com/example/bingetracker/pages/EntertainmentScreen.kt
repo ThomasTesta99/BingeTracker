@@ -17,17 +17,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.bingetracker.data.Movie
@@ -43,10 +42,7 @@ import com.example.bingetracker.models.EntertainmentModel
 
 
 @Composable
-fun PopularEntertainment(entertainmentModel: EntertainmentModel) {
-
-    val popularMovies = entertainmentModel.movieList.collectAsState()
-    val popularTVShows = entertainmentModel.tvShowList.collectAsState()
+fun Entertainment(entertainmentModel: EntertainmentModel, movieList: List<Movie>, tvShowList: List<TVShow>) {
 
     var selectedItem by remember { mutableStateOf<Any?>(null) }
 
@@ -57,19 +53,14 @@ fun PopularEntertainment(entertainmentModel: EntertainmentModel) {
 
     Scaffold{ padding ->
         Column(modifier = Modifier.padding(padding)) {
-            Text(
-                text = "Popular Movies and TV Shows",
-                style = MaterialTheme.typography.headlineSmall
-            )
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(8.dp)
             ) {
-                items(popularMovies.value){ movie ->
+                items(movieList){ movie ->
                     ItemCard(movie){selectedItem = movie}
                 }
-                items(popularTVShows.value){tvShow ->
+                items(tvShowList){tvShow ->
                     ItemCard(tvShow) { selectedItem = tvShow }
                 }
             }
@@ -125,7 +116,8 @@ fun ItemPopup(item: Any, onDismiss: () -> Unit){
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
+                    textAlign = TextAlign.Center,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -18,5 +18,17 @@ interface TMDBApi {
         @Query("page") page: Int = 1
     ): TVShowResponse
 
+    @GET("search/movie")
+    suspend fun searchMovies(
+        @Query("api_key") apiKey: String,
+        @Query("query") query: String
+    ): MovieResponse
+
+    @GET("search/tv")
+    suspend fun searchTVShows(
+        @Query("api_key") apiKey: String,
+        @Query("query") query: String
+    ): TVShowResponse
+
 
 }

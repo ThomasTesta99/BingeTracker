@@ -1,41 +1,25 @@
 package com.example.bingetracker.pages
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.bingetracker.BuildConfig
-import com.example.bingetracker.data.User
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.EntertainmentModel
-import java.util.Properties
 
 @Composable
 fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
     val user by authModel.currentUser.collectAsState()
     val currentUserAuth by authModel.currentUserAuth.collectAsState()
 
-    val entertainmentModel : EntertainmentModel = viewModel()
+    val entertainmentModel: EntertainmentModel = viewModel()
 
-    // Navigate to auth screen when logged out
+    var searchQuery by remember { mutableStateOf("") }
+
     LaunchedEffect(currentUserAuth) {
         if (currentUserAuth == null) {
             navController.navigate("auth") {
@@ -45,33 +29,53 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
     }
 
     Scaffold(
-        topBar = { SearchBar() },
-        bottomBar = {BottomNavBar()}
-    ){ padding ->
+        topBar = { SearchBar(searchQuery) { query ->
+            searchQuery = query
+            entertainmentModel.searchForEntertainment(query)
+        }},
+        bottomBar = { BottomNavBar() }
+    ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             when {
                 user == null && currentUserAuth != null -> {
-                    Text("Loading...")
+                    Text("Loading...", modifier = Modifier.padding(16.dp))
                 }
                 user != null -> {
-                    Column {
-                        Spacer(modifier = Modifier.height(50.dp))
-                        Text(
-                            text = "Welcome, ${user?.name}",
-                            textAlign = TextAlign.Center
-                        )
-                        Button(onClick = { authModel.logout() }) {
-                            Text("Logout")
-                        }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Welcome, ${user?.name}",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Button(
+                        onClick = { authModel.logout() },
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Logout")
                     }
 
-                    SearchBar()
-                    PopularEntertainment(entertainmentModel)
-                    BottomNavBar()
+                    Text(
+                        text = if (searchQuery.isNotEmpty()) {
+                            "Search results for \"$searchQuery\""
+                        } else {
+                            "Popular Movies and TV Shows"
+                        },
+                        style = MaterialTheme.typography.headlineSmall
+                    )
 
+                    val movieResults by entertainmentModel.searchMovieResults.collectAsState()
+                    val tvResults by entertainmentModel.searchTVResults.collectAsState()
+                    val popularMovies by entertainmentModel.movieList.collectAsState()
+                    val popularTVShows by entertainmentModel.tvShowList.collectAsState()
+
+                    if (searchQuery.isNotBlank()) {
+                        Entertainment(entertainmentModel, movieResults, tvResults)
+                    } else {
+                        Entertainment(entertainmentModel, popularMovies, popularTVShows)
+                    }
                 }
                 else -> {
-                    Text(text = "Not logged in")
+                    Text(text = "Not logged in", modifier = Modifier.padding(16.dp))
                 }
             }
         }
@@ -79,18 +83,20 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
 }
 
 @Composable
-fun SearchBar(){
-    var searchBar by remember { mutableStateOf("") }
+fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit) {
     TextField(
-        value = searchBar,
-        onValueChange = {searchBar = it},
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        singleLine = true
+        value = searchQuery,
+        onValueChange = { onQueryChange(it) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        singleLine = true,
+        placeholder = { Text("Search movies or TV shows...") }
     )
 }
 
 @Composable
-fun BottomNavBar(){
+fun BottomNavBar() {
     BottomAppBar {
         Text(
             text = "Navigation Bar",
@@ -98,5 +104,3 @@ fun BottomNavBar(){
         )
     }
 }
-
-

@@ -11,7 +11,7 @@ data class Movie(
     val title: String,
     @SerializedName("poster_path") val posterPath: String?,  // Maps JSON field "poster_path" to posterPath
     @SerializedName("release_date") val releaseDate: String?, // Maps "release_date" to releaseDate
-    val overview: String
+    val overview: String,
 )
 
 data class TVShowResponse(
@@ -23,5 +23,5 @@ data class TVShow(
     @SerializedName("original_name") val title: String,
     @SerializedName("poster_path") val posterPath: String?,  // Maps JSON field "poster_path" to posterPath
     @SerializedName("first_air_date") val airDate: String?, // Maps "release_date" to releaseDate
-    val overview: String
+    val overview: String,
 )
