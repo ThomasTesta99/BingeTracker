@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,7 +10,6 @@ plugins {
 android {
     namespace = "com.example.bingetracker"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.example.bingetracker"
         minSdk = 23
@@ -17,6 +18,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField("String", "TMDB_API_KEY", properties.getProperty("TMDB_API_KEY"))
     }
 
     buildTypes {
@@ -36,6 +42,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }
@@ -57,6 +64,15 @@ dependencies {
     implementation(libs.androidx.navigation.compose.android)
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.google.firebase.auth.ktx)  // Firebase Auth
+
+    // Retrofit dependencies
+    implementation(libs.retrofit) // Retrofit core
+    implementation(libs.converter.gson) // Gson converter
+
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
