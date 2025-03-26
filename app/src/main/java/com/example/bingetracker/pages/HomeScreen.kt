@@ -1,6 +1,10 @@
 package com.example.bingetracker.pages
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,32 +33,8 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,  // Vertically align text and button
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 32.dp)
-            ) {
-                Text(
-                    text = "Welcome, ${user?.name}",
-                    style = MaterialTheme.typography.headlineMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Button(
-                    onClick = { authModel.logout() },
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text("Logout")
-                }
-            }
-        },
-        bottomBar = { BottomNavBar() }
-    ) { padding ->
+    Scaffold()
+     { padding ->
         Column(modifier = Modifier.padding(padding)) {
             when {
                 user == null && currentUserAuth != null -> {
@@ -107,14 +87,4 @@ fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit) {
         singleLine = true,
         placeholder = { Text("Search movies or TV shows...") }
     )
-}
-
-@Composable
-fun BottomNavBar() {
-    BottomAppBar {
-        Text(
-            text = "Navigation Bar",
-            modifier = Modifier.padding(8.dp)
-        )
-    }
 }
