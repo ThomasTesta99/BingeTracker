@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -36,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.bingetracker.data.Movie
@@ -45,8 +43,7 @@ import com.example.bingetracker.models.EntertainmentModel
 
 
 @Composable
-fun PopularEntertainment() {
-    val entertainmentModel = EntertainmentModel()
+fun PopularEntertainment(entertainmentModel: EntertainmentModel) {
 
     val popularMovies = entertainmentModel.movieList.collectAsState()
     val popularTVShows = entertainmentModel.tvShowList.collectAsState()
@@ -58,10 +55,7 @@ fun PopularEntertainment() {
         entertainmentModel.getPopularTvShows()
     }
 
-    Scaffold(
-        topBar = { SearchBar() },
-        bottomBar = {BottomNavBar()}
-    ) { padding ->
+    Scaffold{ padding ->
         Column(modifier = Modifier.padding(padding)) {
             Text(
                 text = "Popular Movies and TV Shows",
@@ -181,43 +175,7 @@ fun ItemPopup(item: Any, onDismiss: () -> Unit){
 
 
 
-//    AlertDialog(
-//        onDismissRequest = onDismiss,
-//        title = {Text((item as? Movie)?.title ?: (item as TVShow).title)},
-//        text = {
-//            Text(
-//                text = (item as? Movie)?.overview ?: (item as TVShow).overview
-//            )},
-//        confirmButton = {
-//            Button(onClick = {}){
-//                Text("Create Binge")
-//            }
-//        },
-//        dismissButton = {
-//            Button(onClick = {}) {
-//                Text("Add to existing binge")
-//            }
-//        }
-//        )
+
 }
 
-@Composable
-fun SearchBar(){
-    var searchBar by remember { mutableStateOf("") }
-    TextField(
-        value = searchBar,
-        onValueChange = {searchBar = it},
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        singleLine = true
-    )
-}
 
-@Composable
-fun BottomNavBar(){
-    BottomAppBar {
-        Text(
-            text = "Navigation Bar",
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-}
