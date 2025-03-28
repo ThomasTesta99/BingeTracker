@@ -2,7 +2,10 @@ package com.example.bingetracker.api
 
 import com.example.bingetracker.data.MovieResponse
 import com.example.bingetracker.data.TVShowResponse
+import com.example.bingetracker.data.TvDetailsResponse
+import com.example.bingetracker.data.TvSeasonResponse
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface TMDBApi {
@@ -30,5 +33,19 @@ interface TMDBApi {
         @Query("query") query: String
     ): TVShowResponse
 
+    // TV show details (includes season info)
+    @GET("tv/{tv_id}")
+    suspend fun getTvShowDetails(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String
+    ): TvDetailsResponse
+
+    // TV season details (includes episode list)
+    @GET("tv/{tv_id}/season/{season_number}")
+    suspend fun getTvSeason(
+        @Path("tv_id") tvId: Int,
+        @Path("season_number") seasonNumber: Int,
+        @Query("api_key") apiKey: String
+    ): TvSeasonResponse
 
 }

@@ -3,10 +3,13 @@ package com.example.bingetracker.models
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bingetracker.BuildConfig
+import com.example.bingetracker.api.RetrofitClient
 import com.example.bingetracker.data.Binge
 import com.example.bingetracker.data.BingeFireStore
 import com.example.bingetracker.data.EntertainmentItem
 import com.example.bingetracker.data.EntertainmentType
+import com.example.bingetracker.data.Episode
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.StoredEntertainmentItem
 import com.example.bingetracker.data.TVShow
@@ -19,7 +22,7 @@ import kotlinx.coroutines.tasks.await
 class BingeModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
-
+    val apiKey = BuildConfig.TMDB_API_KEY
     private val _userBinges = MutableStateFlow<List<Binge>>(emptyList())
     val userBinges: StateFlow<List<Binge>> = _userBinges
 
@@ -36,7 +39,8 @@ class BingeModel : ViewModel() {
             )
 
             val document = db.collection("binges").add(newBinge).await()
-            Log.d("BINGE", "DOCUMENT: ${document.id}")
+            Log.d("BINGEMODEL", "createNewBinge: before add entertainment")
+            addEntertainment(document.id, item)
             _bingeId.value = document.id
         } catch (e: Exception) {
             Log.e("BingeModel", "Error creating new binge: ${e.message}")
@@ -72,7 +76,8 @@ class BingeModel : ViewModel() {
                                         releaseDate = stored.releaseDate,
                                         overview = stored.overview,
                                         totalEpisodes = stored.totalEpisodes,
-                                        watchedEpisodes = stored.watchedEpisodes ?: emptyList()
+                                        watchedEpisodes = stored.watchedEpisodes ?: emptyList(),
+                                        episodes = stored.episodes ?: emptyList(),
                                     )
                                 }
                             }
@@ -87,20 +92,47 @@ class BingeModel : ViewModel() {
     }
 
     private suspend fun addEntertainment(bingeId: String, entertainment: EntertainmentItem) {
-        try {
-            val bingeRef = db.collection("binges").document(bingeId)
-            val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
-            binge?.let {
-                val updatedList = it.entertainmentList.toMutableList()
-                if (!updatedList.any { item -> item.id == entertainment.id }) {
-                    updatedList.add(entertainment.toStored())
-                    bingeRef.update("entertainmentList", updatedList).await()
-                }
+        val bingeRef = db.collection("binges").document(bingeId)
+        val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
+        Log.d("EPISODE DEBUG", "$bingeRef + $binge")
+
+        binge?.let {
+            val updatedList = it.entertainmentList.toMutableList()
+            Log.d("EPISODE DEBUG", "Existing IDs: ${updatedList.map { i -> i.id }}")
+
+            val index = updatedList.indexOfFirst { item -> item.id == entertainment.id }
+            if (index != -1 && entertainment is TVShow) {
+                val episodes = fetchEpisodesForTVShow(entertainment.id)
+                val updatedItem = entertainment.toStored().copy(
+                    episodes = episodes,
+                    totalEpisodes = episodes.size
+                )
+                updatedList[index] = updatedItem
+                Log.d("BINGEMODEL", "Updated $entertainment with ${episodes.size} episodes")
             }
-        } catch (e: Exception) {
-            Log.e("BingeModel", "Error adding entertainment to binge: ${e.message}")
+
+            bingeRef.update("entertainmentList", updatedList).await()
         }
     }
+
+    private suspend fun fetchEpisodesForTVShow(tvShowId: Int): List<Episode> {
+        val episodes = mutableListOf<Episode>()
+        try {
+            val response = RetrofitClient.api.getTvShowDetails(tvShowId, apiKey)
+
+            val validSeasons = response.seasons.filter { it.seasonNumber > 0 }
+
+            for (season in validSeasons) {
+                val seasonResponse = RetrofitClient.api.getTvSeason(tvShowId, season.seasonNumber, apiKey)
+                episodes.addAll(seasonResponse.episodes)
+            }
+
+        } catch (e: Exception) {
+            Log.e("EntertainmentModel", "Error fetching episodes: ${e.message}")
+        }
+        return episodes
+    }
+
 
     fun createBinge(userId: String, name: String, item: EntertainmentItem) {
         viewModelScope.launch {
@@ -139,7 +171,8 @@ fun EntertainmentItem.toStored(): StoredEntertainmentItem {
             type = type,
             releaseDate = releaseDate,
             totalEpisodes = totalEpisodes,
-            watchedEpisodes = watchedEpisodes
+            watchedEpisodes = watchedEpisodes,
+            episodes = episodes
         )
     }
 }

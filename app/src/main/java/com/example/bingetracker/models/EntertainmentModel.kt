@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bingetracker.BuildConfig
 import com.example.bingetracker.api.RetrofitClient
+import com.example.bingetracker.data.Episode
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.TVShow
 import kotlinx.coroutines.flow.MutableStateFlow
