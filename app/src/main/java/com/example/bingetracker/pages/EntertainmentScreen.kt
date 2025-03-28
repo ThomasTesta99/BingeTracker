@@ -49,13 +49,16 @@ import com.example.bingetracker.data.TVShow
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.BingeModel
 import com.example.bingetracker.models.EntertainmentModel
+import kotlin.math.log
 
 
 @Composable
 fun Entertainment(authModel: AuthModel, entertainmentModel: EntertainmentModel, movieList: List<Movie>, tvShowList: List<TVShow>) {
     val bingeModel : BingeModel = viewModel()
     var selectedItem by remember { mutableStateOf<EntertainmentItem?>(null) }
+
     val user = authModel.currentUser.collectAsState()
+
     LaunchedEffect(Unit) {
         entertainmentModel.getPopularMovies()
         entertainmentModel.getPopularTvShows()
@@ -109,6 +112,13 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
     var showCreateDialog by remember { mutableStateOf(false) }
     var bingeName by remember { mutableStateOf("") }
 
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    val bingeList by bingeModel.userBinges.collectAsState()
+
+    LaunchedEffect(userId) {
+        bingeModel.getUserBinges(userId)
+    }
 
     val title = item.title
     val posterPath = item.posterPath
@@ -171,7 +181,7 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                         Text("Create Binge")
                     }
                     Button(
-                        onClick = {},
+                        onClick = { showAddDialog = true},
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Add to Existing Binge")
@@ -264,6 +274,90 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                         ) {
                             Text("Cancel")
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .clickable { showAddDialog = false },
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(0.85f)
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Select a Binge",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    if (bingeList.isEmpty()) {
+                        Text("No binges found.")
+                    } else {
+                        Log.d("ENTERTAINMENT SCREEN", "ItemPopup: ${item.type}")
+                        bingeList.forEach { binge ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        val entertainmentItem = when (item) {
+                                            is Movie -> Movie(
+                                                id = item.id,
+                                                title = item.title,
+                                                posterPath = item.posterPath,
+                                                releaseDate = item.releaseDate,
+                                                overview = item.overview
+                                            )
+                                            is TVShow -> TVShow(
+                                                id = item.id,
+                                                title = item.title,
+                                                posterPath = item.posterPath,
+                                                releaseDate = item.releaseDate,
+                                                overview = item.overview,
+                                                totalEpisodes = item.totalEpisodes,
+                                                watchedEpisodes = item.watchedEpisodes ?: emptyList()
+                                            )
+
+                                            else -> null
+                                        }
+
+                                        entertainmentItem?.let {
+                                            bingeModel.addEntertainmentToBinge(binge.id, it)
+                                        }
+                                        showAddDialog = false
+                                        onDismiss()
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                            ) {
+                                Text(
+                                    text = binge.name,
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = { showAddDialog = false },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Cancel")
                     }
                 }
             }

@@ -93,29 +93,66 @@ class BingeModel : ViewModel() {
         }
     }
 
+//    private suspend fun addEntertainment(bingeId: String, entertainment: EntertainmentItem) {
+//        val bingeRef = db.collection("binges").document(bingeId)
+//        val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
+//        Log.d("EPISODE DEBUG", "$bingeRef + $binge")
+//
+//        binge?.let {
+//            val updatedList = it.entertainmentList.toMutableList()
+//            Log.d("EPISODE DEBUG", "Existing IDs: ${updatedList.map { i -> i.id }}")
+//
+//            val index = updatedList.indexOfFirst { item -> item.id == entertainment.id }
+//            if (index != -1 && entertainment is TVShow) {
+//                val episodes = fetchEpisodesForTVShow(entertainment.id)
+//                val updatedItem = entertainment.toStored().copy(
+//                    episodes = episodes,
+//                    totalEpisodes = episodes.size
+//                )
+//                updatedList[index] = updatedItem
+//                Log.d("BINGEMODEL", "Updated $entertainment with ${episodes.size} episodes")
+//            }
+//
+//            bingeRef.update("entertainmentList", updatedList).await()
+//        }
+//    }
+
     private suspend fun addEntertainment(bingeId: String, entertainment: EntertainmentItem) {
         val bingeRef = db.collection("binges").document(bingeId)
         val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
-        Log.d("EPISODE DEBUG", "$bingeRef + $binge")
 
+        Log.d("EPISODE DEBUG", "$bingeRef + $binge")
+        Log.d("BINGEMODEL", "$entertainment")
         binge?.let {
             val updatedList = it.entertainmentList.toMutableList()
-            Log.d("EPISODE DEBUG", "Existing IDs: ${updatedList.map { i -> i.id }}")
 
-            val index = updatedList.indexOfFirst { item -> item.id == entertainment.id }
-            if (index != -1 && entertainment is TVShow) {
-                val episodes = fetchEpisodesForTVShow(entertainment.id)
-                val updatedItem = entertainment.toStored().copy(
-                    episodes = episodes,
-                    totalEpisodes = episodes.size
-                )
-                updatedList[index] = updatedItem
-                Log.d("BINGEMODEL", "Updated $entertainment with ${episodes.size} episodes")
+            val exists = updatedList.any { item -> item.id == entertainment.id }
+            if (!exists) {
+                val storedItem = when (entertainment) {
+                    is TVShow -> {
+                        val episodes = fetchEpisodesForTVShow(entertainment.id)
+                        entertainment.toStored().copy(
+                            episodes = episodes,
+                            totalEpisodes = episodes.size,
+                            type = entertainment.type
+                        )
+                    }
+                    is Movie -> {
+                        entertainment.toStored().copy(
+                            type = entertainment.type
+                        )
+                    }
+                }
+
+                updatedList.add(storedItem)
+                Log.d("BINGEMODEL", "Added new item: $storedItem")
+                bingeRef.update("entertainmentList", updatedList).await()
+            } else {
+                Log.d("BINGEMODEL", "Item already exists in binge.")
             }
-
-            bingeRef.update("entertainmentList", updatedList).await()
         }
     }
+
 
     private suspend fun fetchEpisodesForTVShow(tvShowId: Int): List<Episode> {
         val episodes = mutableListOf<Episode>()

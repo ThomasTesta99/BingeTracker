@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
@@ -51,7 +52,6 @@ fun BingeDetailScreen(
 ) {
     val user by authModel.currentUser.collectAsState()
     val bingeList by bingeModel.userBinges.collectAsState()
-
     val currentUserAuth by authModel.currentUserAuth.collectAsState()
 
     LaunchedEffect(currentUserAuth) {
@@ -66,7 +66,6 @@ fun BingeDetailScreen(
         user?.uuid?.let { bingeModel.getUserBinges(it) }
     }
 
-    // ✅ Mutable local binge state
     val bingeState = remember { mutableStateOf<Binge?>(null) }
 
     LaunchedEffect(bingeList) {
@@ -74,30 +73,113 @@ fun BingeDetailScreen(
     }
 
     bingeState.value?.let { binge ->
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Binge Name
-            Text(
-                text = binge.name,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Entertainment items details
-            binge.entertainmentList.forEach { item ->
-                EntertainmentItemDetail(item)
-                Spacer(modifier = Modifier.height(16.dp))
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Text(
+                    text = binge.name,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
 
-            Column(modifier = Modifier.fillMaxWidth()) {
+            items(binge.entertainmentList) { item ->
+                EntertainmentItemDetail(item)
+            }
+
+            item {
                 HorizontalProgressBar(binge)
-                Spacer(modifier = Modifier.height(16.dp))
-                EntertainmentChecklist(binge = binge, bingeModel = bingeModel) { updatedBinge ->
-                    bingeState.value = updatedBinge // ✅ immediate local UI update
+            }
+
+            item {
+                ChecklistItems(binge = binge, bingeModel = bingeModel) { updated ->
+                    bingeState.value = updated
                 }
             }
         }
     } ?: run {
         Text("Loading binge details...", modifier = Modifier.padding(16.dp))
+    }
+}
+
+@Composable
+fun ChecklistItems(
+    binge: Binge,
+    bingeModel: BingeModel,
+    onBingeUpdate: (Binge) -> Unit
+) {
+    Column {
+        binge.entertainmentList.forEachIndexed { index, item ->
+            when (item) {
+                is Movie -> {
+                    val isWatchedState = remember { mutableStateOf(item.watched) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = isWatchedState.value,
+                            onCheckedChange = { checked ->
+                                isWatchedState.value = checked
+                                bingeModel.toggleMovieWatched(binge.id, item.id, checked)
+
+                                val updatedList = binge.entertainmentList.toMutableList()
+                                updatedList[index] = item.copy(watched = checked)
+                                onBingeUpdate(binge.copy(entertainmentList = updatedList))
+                            }
+                        )
+                        Text(text = item.title)
+                    }
+                }
+
+                is TVShow -> {
+                    Text(
+                        text = item.title,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    )
+                    item.episodes?.forEach { episode ->
+                        val watchedState = remember {
+                            mutableStateOf(
+                                item.watchedEpisodes.any {
+                                    it.seasonNumber == episode.seasonNumber &&
+                                            it.episodeNumber == episode.episodeNumber
+                                }
+                            )
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = watchedState.value,
+                                onCheckedChange = { checked ->
+                                    watchedState.value = checked
+                                    bingeModel.toggleEpisodeWatched(
+                                        binge.id, item.id,
+                                        episode.seasonNumber, episode.episodeNumber,
+                                        checked
+                                    )
+
+                                    val updatedList = binge.entertainmentList.toMutableList()
+                                    val updatedEpisodes = item.watchedEpisodes.toMutableList()
+                                    val watchedEp = EpisodeWatched(
+                                        seasonNumber = episode.seasonNumber,
+                                        episodeNumber = episode.episodeNumber
+                                    )
+
+                                    if (checked) updatedEpisodes.add(watchedEp)
+                                    else updatedEpisodes.remove(watchedEp)
+
+                                    updatedList[index] = item.copy(watchedEpisodes = updatedEpisodes)
+                                    onBingeUpdate(binge.copy(entertainmentList = updatedList))
+                                }
+                            )
+                            Text(text = "S${episode.seasonNumber} E${episode.episodeNumber}: ${episode.title}")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -110,7 +192,7 @@ fun EntertainmentItemDetail(item: EntertainmentItem) {
         AsyncImage(
             model = "https://image.tmdb.org/t/p/w500${item.posterPath}",
             contentDescription = item.title,
-            modifier = Modifier.height(200.dp)
+            modifier = Modifier.height(100.dp)
         )
         Column {
             Text(
@@ -126,86 +208,86 @@ fun EntertainmentItemDetail(item: EntertainmentItem) {
     }
 }
 
-@Composable
-fun EntertainmentChecklist(
-    binge: Binge,
-    bingeModel: BingeModel,
-    onBingeUpdate: (Binge) -> Unit
-) {
-    LazyColumn {
-        binge.entertainmentList.forEachIndexed { index, item ->
-            when (item) {
-                is Movie -> {
-                    item {
-                        val isWatchedState = remember { mutableStateOf(item.watched) }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = isWatchedState.value,
-                                onCheckedChange = { checked ->
-                                    isWatchedState.value = checked
-                                    bingeModel.toggleMovieWatched(binge.id, item.id, checked)
-
-                                    // Immediate UI update
-                                    val updatedEntertainment = binge.entertainmentList.toMutableList()
-                                    updatedEntertainment[index] = item.copy(watched = checked)
-                                    onBingeUpdate(binge.copy(entertainmentList = updatedEntertainment))
-                                }
-                            )
-                            Text(text = item.title)
-                        }
-                    }
-                }
-                is TVShow -> {
-                    item {
-                        Text(
-                            text = item.title,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                        )
-                    }
-                    items(item.episodes ?: emptyList()) { episode ->
-                        val episodeWatchedState = remember {
-                            mutableStateOf(
-                                item.watchedEpisodes.any {
-                                    it.seasonNumber == episode.seasonNumber &&
-                                            it.episodeNumber == episode.episodeNumber
-                                }
-                            )
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = episodeWatchedState.value,
-                                onCheckedChange = { checked ->
-                                    episodeWatchedState.value = checked
-                                    bingeModel.toggleEpisodeWatched(
-                                        binge.id, item.id, episode.seasonNumber, episode.episodeNumber, checked
-                                    )
-
-                                    // Immediate UI update
-                                    val updatedEntertainment = binge.entertainmentList.toMutableList()
-                                    val updatedEpisodes = item.watchedEpisodes.toMutableList()
-
-                                    val episodeWatched = EpisodeWatched(
-                                        seasonNumber = episode.seasonNumber,
-                                        episodeNumber = episode.episodeNumber
-                                    )
-
-                                    if (checked) updatedEpisodes.add(episodeWatched)
-                                    else updatedEpisodes.remove(episodeWatched)
-
-                                    updatedEntertainment[index] = item.copy(watchedEpisodes = updatedEpisodes)
-                                    onBingeUpdate(binge.copy(entertainmentList = updatedEntertainment))
-                                }
-                            )
-                            Text(text = "S${episode.seasonNumber} E${episode.episodeNumber}: ${episode.title}")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
+//@Composable
+//fun EntertainmentChecklist(
+//    binge: Binge,
+//    bingeModel: BingeModel,
+//    onBingeUpdate: (Binge) -> Unit
+//) {
+//    LazyColumn {
+//        binge.entertainmentList.forEachIndexed { index, item ->
+//            when (item) {
+//                is Movie -> {
+//                    item {
+//                        val isWatchedState = remember { mutableStateOf(item.watched) }
+//                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                            Checkbox(
+//                                checked = isWatchedState.value,
+//                                onCheckedChange = { checked ->
+//                                    isWatchedState.value = checked
+//                                    bingeModel.toggleMovieWatched(binge.id, item.id, checked)
+//
+//                                    // Immediate UI update
+//                                    val updatedEntertainment = binge.entertainmentList.toMutableList()
+//                                    updatedEntertainment[index] = item.copy(watched = checked)
+//                                    onBingeUpdate(binge.copy(entertainmentList = updatedEntertainment))
+//                                }
+//                            )
+//                            Text(text = item.title)
+//                        }
+//                    }
+//                }
+//                is TVShow -> {
+//                    item {
+//                        Text(
+//                            text = item.title,
+//                            fontWeight = FontWeight.Bold,
+//                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+//                        )
+//                    }
+//                    items(item.episodes ?: emptyList()) { episode ->
+//                        val episodeWatchedState = remember {
+//                            mutableStateOf(
+//                                item.watchedEpisodes.any {
+//                                    it.seasonNumber == episode.seasonNumber &&
+//                                            it.episodeNumber == episode.episodeNumber
+//                                }
+//                            )
+//                        }
+//                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                            Checkbox(
+//                                checked = episodeWatchedState.value,
+//                                onCheckedChange = { checked ->
+//                                    episodeWatchedState.value = checked
+//                                    bingeModel.toggleEpisodeWatched(
+//                                        binge.id, item.id, episode.seasonNumber, episode.episodeNumber, checked
+//                                    )
+//
+//                                    // Immediate UI update
+//                                    val updatedEntertainment = binge.entertainmentList.toMutableList()
+//                                    val updatedEpisodes = item.watchedEpisodes.toMutableList()
+//
+//                                    val episodeWatched = EpisodeWatched(
+//                                        seasonNumber = episode.seasonNumber,
+//                                        episodeNumber = episode.episodeNumber
+//                                    )
+//
+//                                    if (checked) updatedEpisodes.add(episodeWatched)
+//                                    else updatedEpisodes.remove(episodeWatched)
+//
+//                                    updatedEntertainment[index] = item.copy(watchedEpisodes = updatedEpisodes)
+//                                    onBingeUpdate(binge.copy(entertainmentList = updatedEntertainment))
+//                                }
+//                            )
+//                            Text(text = "S${episode.seasonNumber} E${episode.episodeNumber}: ${episode.title}")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+//
 @Composable
 fun HorizontalProgressBar(binge: Binge) {
     val totalItems = binge.entertainmentList.sumOf {
@@ -254,7 +336,3 @@ fun HorizontalProgressBar(binge: Binge) {
         }
     }
 }
-
-
-
-
