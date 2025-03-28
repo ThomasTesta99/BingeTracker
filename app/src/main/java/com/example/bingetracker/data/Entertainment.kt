@@ -11,7 +11,8 @@ data class StoredEntertainmentItem(
     val releaseDate: String? = null,
     val totalEpisodes: Int? = null,
     val watchedEpisodes: List<Int>? = emptyList(),
-    val episodes: List<Episode>? = emptyList()
+    val episodes: List<Episode>? = emptyList(),
+    val isWatched: Boolean = false,
 )
 
 // Base Sealed Class
@@ -34,7 +35,8 @@ data class Movie(
     override val title: String,
     @SerializedName("poster_path") override val posterPath: String?,
     @SerializedName("release_date") val releaseDate: String?,
-    override val overview: String
+    override val overview: String,
+    val isWatched: Boolean = false,
 ) : EntertainmentItem() {
     override val type: EntertainmentType = EntertainmentType.MOVIE
 }
@@ -80,7 +82,7 @@ data class TvSeasonResponse(
 )
 
 data class Episode(
-    @SerializedName("episode_number") val episodeNumber: Int,
-    @SerializedName("season_number") val seasonNumber: Int,
-    @SerializedName("name") val title: String
+    @SerializedName("episode_number") val episodeNumber: Int = 0,
+    @SerializedName("season_number") val seasonNumber: Int = 0,
+    @SerializedName("name") val title: String = "",
 )

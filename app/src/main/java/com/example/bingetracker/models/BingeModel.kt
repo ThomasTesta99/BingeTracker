@@ -67,7 +67,8 @@ class BingeModel : ViewModel() {
                                         title = stored.title,
                                         posterPath = stored.posterPath,
                                         releaseDate = stored.releaseDate,
-                                        overview = stored.overview
+                                        overview = stored.overview,
+                                        isWatched = stored.isWatched
                                     )
                                     EntertainmentType.TV_SHOW -> TVShow(
                                         id = stored.id,
@@ -161,7 +162,8 @@ fun EntertainmentItem.toStored(): StoredEntertainmentItem {
             posterPath = posterPath,
             overview = overview,
             type = type,
-            releaseDate = releaseDate
+            releaseDate = releaseDate,
+            isWatched = isWatched
         )
         is TVShow -> StoredEntertainmentItem(
             id = id,
