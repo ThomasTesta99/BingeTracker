@@ -23,12 +23,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.bingetracker.data.User
 import com.example.bingetracker.models.AuthModel
+import com.example.bingetracker.models.BingeModel
 import com.example.bingetracker.pages.AllBingesScreen
+import com.example.bingetracker.pages.BingeDetailScreen
 import com.example.bingetracker.pages.HomeScreen
 import com.example.bingetracker.pages.auth.AuthScreen
 
@@ -55,6 +58,11 @@ fun AppNavigation(navController: NavHostController, authModel: AuthModel){
                 }
                 composable("home") { HomeScreen(navController, authModel) }
                 composable("binges") { AllBingesScreen(navController, authModel) }
+                composable("bingeDetail/{bingeId}") { backStackEntry ->
+                    val bingeId = backStackEntry.arguments?.getString("bingeId") ?: return@composable
+                    val bingeModel: BingeModel = viewModel()
+                    BingeDetailScreen(bingeId = bingeId, bingeModel = bingeModel, authModel, navController)
+                }
             }
         }
     }

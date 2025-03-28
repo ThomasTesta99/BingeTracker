@@ -242,7 +242,7 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                                             releaseDate = item.releaseDate,
                                             overview = item.overview,
                                             totalEpisodes = item.totalEpisodes,
-                                            watchedEpisodes = item.watchedEpisodes
+                                            watchedEpisodes = item.watchedEpisodes ?: emptyList()
                                         )
 
                                         else -> null

@@ -10,6 +10,7 @@ import com.example.bingetracker.data.BingeFireStore
 import com.example.bingetracker.data.EntertainmentItem
 import com.example.bingetracker.data.EntertainmentType
 import com.example.bingetracker.data.Episode
+import com.example.bingetracker.data.EpisodeWatched
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.StoredEntertainmentItem
 import com.example.bingetracker.data.TVShow
@@ -68,7 +69,7 @@ class BingeModel : ViewModel() {
                                         posterPath = stored.posterPath,
                                         releaseDate = stored.releaseDate,
                                         overview = stored.overview,
-                                        isWatched = stored.isWatched
+                                        watched = stored.watched
                                     )
                                     EntertainmentType.TV_SHOW -> TVShow(
                                         id = stored.id,
@@ -134,6 +135,61 @@ class BingeModel : ViewModel() {
         return episodes
     }
 
+    fun toggleMovieWatched(bingeId: String, movieId: Int, isWatched: Boolean) {
+        viewModelScope.launch {
+            val bingeRef = db.collection("binges").document(bingeId)
+            db.runTransaction { transaction ->
+                val binge = transaction.get(bingeRef).toObject(BingeFireStore::class.java) ?: return@runTransaction
+                val updatedList = binge.entertainmentList.map { item ->
+                    if (item.id == movieId && item.type == EntertainmentType.MOVIE) {
+                        item.copy(watched = isWatched)
+                    } else item
+                }
+                transaction.update(bingeRef, "entertainmentList", updatedList)
+            }.await() // <-- Await transaction completion explicitly here
+
+            // ✅ Fetch updated binge list again after transaction
+            val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
+            userId?.let {
+                getBinges(it)
+            }
+        }
+    }
+
+
+    fun toggleEpisodeWatched(
+        bingeId: String,
+        tvShowId: Int,
+        seasonNumber: Int,
+        episodeNumber: Int,
+        isWatched: Boolean
+    ) {
+        viewModelScope.launch {
+            val bingeRef = db.collection("binges").document(bingeId)
+            db.runTransaction { transaction ->
+                val binge = transaction.get(bingeRef).toObject(BingeFireStore::class.java) ?: return@runTransaction
+                val updatedList = binge.entertainmentList.map { item ->
+                    if (item.id == tvShowId && item.type == EntertainmentType.TV_SHOW) {
+                        val updatedEpisodes = item.watchedEpisodes.toMutableList()
+                        val episodeWatched = EpisodeWatched(seasonNumber, episodeNumber)
+                        if (isWatched) {
+                            if (!updatedEpisodes.contains(episodeWatched)) updatedEpisodes.add(episodeWatched)
+                        } else {
+                            updatedEpisodes.remove(episodeWatched)
+                        }
+                        item.copy(watchedEpisodes = updatedEpisodes)
+                    } else item
+                }
+                transaction.update(bingeRef, "entertainmentList", updatedList)
+            }.await() // Explicitly await completion
+
+            // ✅ Fetch updated data from Firestore afterward:
+            val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
+            userId?.let {
+                getBinges(it)
+            }
+        }
+    }
 
     fun createBinge(userId: String, name: String, item: EntertainmentItem) {
         viewModelScope.launch {
@@ -163,7 +219,7 @@ fun EntertainmentItem.toStored(): StoredEntertainmentItem {
             overview = overview,
             type = type,
             releaseDate = releaseDate,
-            isWatched = isWatched
+            watched = watched
         )
         is TVShow -> StoredEntertainmentItem(
             id = id,

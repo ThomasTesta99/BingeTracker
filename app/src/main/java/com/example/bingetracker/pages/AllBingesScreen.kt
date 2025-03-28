@@ -1,6 +1,5 @@
 package com.example.bingetracker.pages
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,11 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -30,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.bingetracker.data.EntertainmentType
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.TVShow
 import com.example.bingetracker.models.AuthModel
@@ -39,11 +35,21 @@ import com.example.bingetracker.models.BingeModel
 @Composable
 fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
     val user by authModel.currentUser.collectAsState()
+    val currentUserAuth by authModel.currentUserAuth.collectAsState()
+
     val bingeModel: BingeModel = viewModel()
     val bingeList by bingeModel.userBinges.collectAsState()
 
     LaunchedEffect(user?.uuid) {
         user?.uuid?.let { bingeModel.getUserBinges(it) }
+    }
+
+    LaunchedEffect(currentUserAuth) {
+        if (currentUserAuth == null) {
+            navController.navigate("auth") {
+                popUpTo("home") { inclusive = true }
+            }
+        }
     }
 
     LazyVerticalGrid(
@@ -87,7 +93,7 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
                     }
                     val watchedItems = binge.entertainmentList.sumOf { item ->
                         when (item) {
-                            is Movie -> if (item.isWatched) 1 else 0
+                            is Movie -> if (item.watched) 1 else 0
                             is TVShow -> item.watchedEpisodes?.size ?: 0
                         }
                     }

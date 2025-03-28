@@ -10,9 +10,14 @@ data class StoredEntertainmentItem(
     val type: EntertainmentType = EntertainmentType.MOVIE,
     val releaseDate: String? = null,
     val totalEpisodes: Int? = null,
-    val watchedEpisodes: List<Int>? = emptyList(),
+    val watchedEpisodes: List<EpisodeWatched> = emptyList(),
     val episodes: List<Episode>? = emptyList(),
-    val isWatched: Boolean = false,
+    val watched: Boolean = false,
+)
+
+data class EpisodeWatched(
+    val seasonNumber: Int = 0,
+    val episodeNumber: Int = 0
 )
 
 // Base Sealed Class
@@ -36,7 +41,7 @@ data class Movie(
     @SerializedName("poster_path") override val posterPath: String?,
     @SerializedName("release_date") val releaseDate: String?,
     override val overview: String,
-    val isWatched: Boolean = false,
+    val watched: Boolean = false,
 ) : EntertainmentItem() {
     override val type: EntertainmentType = EntertainmentType.MOVIE
 }
@@ -49,7 +54,7 @@ data class TVShow(
     @SerializedName("first_air_date") val releaseDate: String?,
     override val overview: String,
     val totalEpisodes: Int?,
-    val watchedEpisodes: List<Int>? = emptyList(),
+    val watchedEpisodes: List<EpisodeWatched> = emptyList(),
     val episodes: List<Episode>? = emptyList(),
 ) : EntertainmentItem() {
     override val type: EntertainmentType = EntertainmentType.TV_SHOW
