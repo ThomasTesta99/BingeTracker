@@ -28,7 +28,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.bingetracker.data.User
 import com.example.bingetracker.models.AuthModel
-import com.example.bingetracker.pages.BingeScreen
+import com.example.bingetracker.pages.AllBingesScreen
 import com.example.bingetracker.pages.HomeScreen
 import com.example.bingetracker.pages.auth.AuthScreen
 
@@ -54,7 +54,7 @@ fun AppNavigation(navController: NavHostController, authModel: AuthModel){
                     }
                 }
                 composable("home") { HomeScreen(navController, authModel) }
-                composable("binges") { BingeScreen(navController) }
+                composable("binges") { AllBingesScreen(navController, authModel) }
             }
         }
     }

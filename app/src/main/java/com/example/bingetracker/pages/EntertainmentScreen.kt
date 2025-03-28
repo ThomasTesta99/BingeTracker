@@ -1,5 +1,6 @@
 package com.example.bingetracker.pages
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,39 +14,48 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.bingetracker.data.EntertainmentItem
+import com.example.bingetracker.data.EntertainmentType
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.TVShow
+import com.example.bingetracker.models.AuthModel
+import com.example.bingetracker.models.BingeModel
 import com.example.bingetracker.models.EntertainmentModel
 
 
 @Composable
-fun Entertainment(entertainmentModel: EntertainmentModel, movieList: List<Movie>, tvShowList: List<TVShow>) {
-
-    var selectedItem by remember { mutableStateOf<Any?>(null) }
-
+fun Entertainment(authModel: AuthModel, entertainmentModel: EntertainmentModel, movieList: List<Movie>, tvShowList: List<TVShow>) {
+    val bingeModel : BingeModel = viewModel()
+    var selectedItem by remember { mutableStateOf<EntertainmentItem?>(null) }
+    val user = authModel.currentUser.collectAsState()
     LaunchedEffect(Unit) {
         entertainmentModel.getPopularMovies()
         entertainmentModel.getPopularTvShows()
@@ -67,18 +77,20 @@ fun Entertainment(entertainmentModel: EntertainmentModel, movieList: List<Movie>
         }
 
         selectedItem?.let{
-            ItemPopup(item = it, onDismiss = {selectedItem = null})
+            ItemPopup(item = it, onDismiss = {selectedItem = null}, bingeModel, user.value!!.uuid)
         }
     }
 }
 
 @Composable
-fun ItemCard(item : Any, onClick: () -> Unit){
-    val title = if(item is Movie) item.title else (item as TVShow).title
-    val posterPath = if(item is Movie) item.posterPath else (item as TVShow).posterPath
+fun ItemCard(item : EntertainmentItem, onClick: () -> Unit){
+    val title = item.title
+    val posterPath = item.posterPath
 
     if(!posterPath.isNullOrEmpty()){
-        Column(modifier = Modifier.padding(8.dp).clickable { onClick() }) {
+        Column(modifier = Modifier
+            .padding(8.dp)
+            .clickable { onClick() }) {
             AsyncImage(
                 model = "https://image.tmdb.org/t/p/w500$posterPath",
                 contentDescription = title,
@@ -93,7 +105,15 @@ fun ItemCard(item : Any, onClick: () -> Unit){
 }
 
 @Composable
-fun ItemPopup(item: Any, onDismiss: () -> Unit){
+fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeModel, userId: String) {
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var bingeName by remember { mutableStateOf("") }
+
+
+    val title = item.title
+    val posterPath = item.posterPath
+    val overview = item.overview
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -109,9 +129,6 @@ fun ItemPopup(item: Any, onDismiss: () -> Unit){
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                val title = if (item is Movie) item.title else (item as TVShow).title
-                val posterPath = if (item is Movie) item.posterPath else (item as TVShow).posterPath
-                val overview = if (item is Movie) item.overview else (item as TVShow).overview
 
                 Text(
                     text = title,
@@ -136,7 +153,7 @@ fun ItemPopup(item: Any, onDismiss: () -> Unit){
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     Text(
-                        text = overview,
+                        text = overview ?: "No description available.",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -148,7 +165,7 @@ fun ItemPopup(item: Any, onDismiss: () -> Unit){
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(
-                        onClick = {},
+                        onClick = { showCreateDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Create Binge")
@@ -164,10 +181,92 @@ fun ItemPopup(item: Any, onDismiss: () -> Unit){
         }
     }
 
+    if (showCreateDialog) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Custom Dialog layout
+            Card(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.medium,
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 6.dp
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Create a Binge",
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
+                    Text(text = "Enter a name for your binge:")
+                    Spacer(modifier = Modifier.height(8.dp))
 
+                    TextField(
+                        value = bingeName,
+                        onValueChange = { bingeName = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Binge Name") },
+                        singleLine = true,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = {
+                                if (bingeName.isNotEmpty()) {
+                                    val entertainmentItem = when (item) {
+                                        is Movie -> Movie(
+                                            id = item.id,
+                                            title = item.title,
+                                            posterPath = item.posterPath,
+                                            releaseDate = item.releaseDate,
+                                            overview = item.overview
+                                        )
 
+                                        is TVShow -> TVShow(
+                                            id = item.id,
+                                            title = item.title,
+                                            posterPath = item.posterPath,
+                                            releaseDate = item.releaseDate,
+                                            overview = item.overview,
+                                            totalEpisodes = item.totalEpisodes,
+                                            watchedEpisodes = item.watchedEpisodes
+                                        )
+
+                                        else -> null
+                                    }
+
+                                    entertainmentItem?.let {
+                                        bingeModel.createBinge(userId, bingeName, it)
+                                    }
+                                    showCreateDialog = false
+                                }
+                            },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text("Create")
+                        }
+
+                        Button(
+                            onClick = { showCreateDialog = false }
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
-
-

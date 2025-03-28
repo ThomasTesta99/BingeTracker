@@ -61,11 +61,11 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                     if (searchQuery.isNotBlank()) {
                         val movieResults by entertainmentModel.searchMovieResults.collectAsState()
                         val tvResults by entertainmentModel.searchTVResults.collectAsState()
-                        Entertainment(entertainmentModel, movieResults, tvResults)
+                        Entertainment(authModel, entertainmentModel, movieResults, tvResults)
                     } else {
                         val popularMovies by entertainmentModel.movieList.collectAsState()
                         val popularTVShows by entertainmentModel.tvShowList.collectAsState()
-                        Entertainment(entertainmentModel, popularMovies, popularTVShows)
+                        Entertainment(authModel, entertainmentModel, popularMovies, popularTVShows)
                     }
                 }
                 else -> {
