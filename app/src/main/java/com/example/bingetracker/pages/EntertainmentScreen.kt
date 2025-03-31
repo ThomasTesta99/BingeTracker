@@ -262,6 +262,7 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                                         bingeModel.createBinge(userId, bingeName, it)
                                     }
                                     showCreateDialog = false
+                                    onDismiss()
                                 }
                             },
                             modifier = Modifier.padding(end = 8.dp)

@@ -1,37 +1,38 @@
 package com.example.bingetracker.pages
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -53,6 +54,7 @@ fun BingeDetailScreen(
     val user by authModel.currentUser.collectAsState()
     val bingeList by bingeModel.userBinges.collectAsState()
     val currentUserAuth by authModel.currentUserAuth.collectAsState()
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentUserAuth) {
         if (currentUserAuth == null) {
@@ -83,7 +85,11 @@ fun BingeDetailScreen(
                 Text(
                     text = binge.name,
                     style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 8.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
+
                 )
             }
 
@@ -98,6 +104,40 @@ fun BingeDetailScreen(
             item {
                 ChecklistItems(binge = binge, bingeModel = bingeModel) { updated ->
                     bingeState.value = updated
+                }
+            }
+            item {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { showConfirmDialog = true }
+                ) {
+                    Text("Delete this binge")
+                }
+                if (showConfirmDialog) {
+                    val context = LocalContext.current
+                    AlertDialog(
+                        onDismissRequest = { showConfirmDialog = false },
+                        title = { Text("Delete this binge") },
+                        text = {
+                            Text("Are you sure you want to delete current binge?")
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showConfirmDialog = false
+                                user?.let { bingeModel.deleteBinge(bingeId, it.uuid) }
+                                navController.popBackStack()
+                                Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT)
+                                    .show()
+                            }) {
+                                Text("Yes")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showConfirmDialog = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -187,7 +227,8 @@ fun ChecklistItems(
 fun EntertainmentItemDetail(item: EntertainmentItem) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
     ) {
         AsyncImage(
             model = "https://image.tmdb.org/t/p/w500${item.posterPath}",
@@ -208,86 +249,6 @@ fun EntertainmentItemDetail(item: EntertainmentItem) {
     }
 }
 
-//@Composable
-//fun EntertainmentChecklist(
-//    binge: Binge,
-//    bingeModel: BingeModel,
-//    onBingeUpdate: (Binge) -> Unit
-//) {
-//    LazyColumn {
-//        binge.entertainmentList.forEachIndexed { index, item ->
-//            when (item) {
-//                is Movie -> {
-//                    item {
-//                        val isWatchedState = remember { mutableStateOf(item.watched) }
-//                        Row(verticalAlignment = Alignment.CenterVertically) {
-//                            Checkbox(
-//                                checked = isWatchedState.value,
-//                                onCheckedChange = { checked ->
-//                                    isWatchedState.value = checked
-//                                    bingeModel.toggleMovieWatched(binge.id, item.id, checked)
-//
-//                                    // Immediate UI update
-//                                    val updatedEntertainment = binge.entertainmentList.toMutableList()
-//                                    updatedEntertainment[index] = item.copy(watched = checked)
-//                                    onBingeUpdate(binge.copy(entertainmentList = updatedEntertainment))
-//                                }
-//                            )
-//                            Text(text = item.title)
-//                        }
-//                    }
-//                }
-//                is TVShow -> {
-//                    item {
-//                        Text(
-//                            text = item.title,
-//                            fontWeight = FontWeight.Bold,
-//                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-//                        )
-//                    }
-//                    items(item.episodes ?: emptyList()) { episode ->
-//                        val episodeWatchedState = remember {
-//                            mutableStateOf(
-//                                item.watchedEpisodes.any {
-//                                    it.seasonNumber == episode.seasonNumber &&
-//                                            it.episodeNumber == episode.episodeNumber
-//                                }
-//                            )
-//                        }
-//                        Row(verticalAlignment = Alignment.CenterVertically) {
-//                            Checkbox(
-//                                checked = episodeWatchedState.value,
-//                                onCheckedChange = { checked ->
-//                                    episodeWatchedState.value = checked
-//                                    bingeModel.toggleEpisodeWatched(
-//                                        binge.id, item.id, episode.seasonNumber, episode.episodeNumber, checked
-//                                    )
-//
-//                                    // Immediate UI update
-//                                    val updatedEntertainment = binge.entertainmentList.toMutableList()
-//                                    val updatedEpisodes = item.watchedEpisodes.toMutableList()
-//
-//                                    val episodeWatched = EpisodeWatched(
-//                                        seasonNumber = episode.seasonNumber,
-//                                        episodeNumber = episode.episodeNumber
-//                                    )
-//
-//                                    if (checked) updatedEpisodes.add(episodeWatched)
-//                                    else updatedEpisodes.remove(episodeWatched)
-//
-//                                    updatedEntertainment[index] = item.copy(watchedEpisodes = updatedEpisodes)
-//                                    onBingeUpdate(binge.copy(entertainmentList = updatedEntertainment))
-//                                }
-//                            )
-//                            Text(text = "S${episode.seasonNumber} E${episode.episodeNumber}: ${episode.title}")
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
 @Composable
 fun HorizontalProgressBar(binge: Binge) {
     val totalItems = binge.entertainmentList.sumOf {
@@ -299,7 +260,7 @@ fun HorizontalProgressBar(binge: Binge) {
     val watchedItems = binge.entertainmentList.sumOf {
         when (it) {
             is Movie -> if (it.watched) 1 else 0
-            is TVShow -> it.watchedEpisodes?.size ?: 0
+            is TVShow -> it.watchedEpisodes.size ?: 0
         }
     }
 

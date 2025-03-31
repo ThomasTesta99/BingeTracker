@@ -23,12 +23,22 @@ import kotlinx.coroutines.tasks.await
 class BingeModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
-    val apiKey = BuildConfig.TMDB_API_KEY
+    private val apiKey = BuildConfig.TMDB_API_KEY
+
     private val _userBinges = MutableStateFlow<List<Binge>>(emptyList())
     val userBinges: StateFlow<List<Binge>> = _userBinges
 
     private val _bingeId = MutableStateFlow<String?>(null)
     val bingeId: StateFlow<String?> = _bingeId
+
+    private suspend fun deleteUserBinge(bingeId: String, userId: String){
+        try {
+            db.collection("binges").document(bingeId).delete().await()
+            getUserBinges(userId)
+        }catch (e: Exception){
+            Log.e("Binge Model", "${e.message}")
+        }
+    }
 
     private suspend fun createNewBinge(userId: String, name: String, item: EntertainmentItem) {
         try {
@@ -93,29 +103,6 @@ class BingeModel : ViewModel() {
         }
     }
 
-//    private suspend fun addEntertainment(bingeId: String, entertainment: EntertainmentItem) {
-//        val bingeRef = db.collection("binges").document(bingeId)
-//        val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
-//        Log.d("EPISODE DEBUG", "$bingeRef + $binge")
-//
-//        binge?.let {
-//            val updatedList = it.entertainmentList.toMutableList()
-//            Log.d("EPISODE DEBUG", "Existing IDs: ${updatedList.map { i -> i.id }}")
-//
-//            val index = updatedList.indexOfFirst { item -> item.id == entertainment.id }
-//            if (index != -1 && entertainment is TVShow) {
-//                val episodes = fetchEpisodesForTVShow(entertainment.id)
-//                val updatedItem = entertainment.toStored().copy(
-//                    episodes = episodes,
-//                    totalEpisodes = episodes.size
-//                )
-//                updatedList[index] = updatedItem
-//                Log.d("BINGEMODEL", "Updated $entertainment with ${episodes.size} episodes")
-//            }
-//
-//            bingeRef.update("entertainmentList", updatedList).await()
-//        }
-//    }
 
     private suspend fun addEntertainment(bingeId: String, entertainment: EntertainmentItem) {
         val bingeRef = db.collection("binges").document(bingeId)
@@ -152,7 +139,6 @@ class BingeModel : ViewModel() {
             }
         }
     }
-
 
     private suspend fun fetchEpisodesForTVShow(tvShowId: Int): List<Episode> {
         val episodes = mutableListOf<Episode>()
@@ -218,9 +204,8 @@ class BingeModel : ViewModel() {
                     } else item
                 }
                 transaction.update(bingeRef, "entertainmentList", updatedList)
-            }.await() // Explicitly await completion
+            }.await()
 
-            // ✅ Fetch updated data from Firestore afterward:
             val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
             userId?.let {
                 getBinges(it)
@@ -243,6 +228,12 @@ class BingeModel : ViewModel() {
     fun getUserBinges(userId: String) {
         viewModelScope.launch {
             getBinges(userId)
+        }
+    }
+
+    fun deleteBinge(bingeId: String, userId: String){
+        viewModelScope.launch {
+            deleteUserBinge(bingeId, userId)
         }
     }
 }
