@@ -26,7 +26,13 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
     val user by authModel.currentUser.collectAsState()
     val currentUserAuth by authModel.currentUserAuth.collectAsState()
     val bingeModel: BingeModel = viewModel()
-    val bingeList by bingeModel.userBinges.collectAsState()
+    // val bingeList by bingeModel.userBinges.collectAsState()
+    // Use filteredBinges instead of userBinges
+    val bingeList by bingeModel.filteredBinges.collectAsState()
+
+    // Get current filter and sort
+    val currentFilter by bingeModel.currentFilter.collectAsState()
+    val currentSort by bingeModel.currentSort.collectAsState()
 
     val selectedBinges = remember { mutableStateOf(setOf<String>()) }
     var deletingBinges by remember { mutableStateOf(false) }
@@ -47,6 +53,14 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        // Add the filter/sort bar here, before the LazyVerticalGrid
+        FilterSortBar(
+            currentFilter = currentFilter,
+            currentSort = currentSort,
+            onFilterChanged = { bingeModel.updateFilter(it) },
+            onSortChanged = { bingeModel.updateSort(it) }
+        )
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier

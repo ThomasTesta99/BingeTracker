@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -26,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.bingetracker.data.BingeFilter
 import com.example.bingetracker.data.BingeSort
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import com.example.bingetracker.R
 
 @Composable
 fun FilterSortBar(
@@ -99,7 +101,7 @@ fun FilterSortBar(
                         text = "Sort by: ${getSortName(currentSort)}",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    Icon(Icons.Default.Sort, contentDescription = "Sort options")
+                    Text(" ▼", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 DropdownMenu(
