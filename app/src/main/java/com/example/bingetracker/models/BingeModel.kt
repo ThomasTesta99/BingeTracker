@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.bingetracker.BuildConfig
 import com.example.bingetracker.api.RetrofitClient
 import com.example.bingetracker.data.Binge
+import com.example.bingetracker.data.BingeFilter
 import com.example.bingetracker.data.BingeFireStore
+import com.example.bingetracker.data.BingeSort
 import com.example.bingetracker.data.EntertainmentItem
 import com.example.bingetracker.data.EntertainmentType
 import com.example.bingetracker.data.Episode
@@ -30,6 +32,16 @@ class BingeModel : ViewModel() {
 
     private val _bingeId = MutableStateFlow<String?>(null)
     val bingeId: StateFlow<String?> = _bingeId
+
+    // filter and sort state flows
+    private val _currentFilter = MutableStateFlow(BingeFilter.ALL)
+    val currentFilter: StateFlow<BingeFilter> = _currentFilter
+
+    private val _currentSort = MutableStateFlow(BingeSort.ALPHABETICAL)
+    val currentSort: StateFlow<BingeSort> = _currentSort
+
+    private val _filteredBinges = MutableStateFlow<List<Binge>>(emptyList())
+    val filteredBinges: StateFlow<List<Binge>> = _filteredBinges
 
     private suspend fun deleteUserBinge(bingeId: String, userId: String){
         try {
@@ -175,6 +187,7 @@ class BingeModel : ViewModel() {
             val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
             userId?.let {
                 getBinges(it)
+                applyFilterAndSort()
             }
         }
     }
@@ -209,6 +222,7 @@ class BingeModel : ViewModel() {
             val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
             userId?.let {
                 getBinges(it)
+                applyFilterAndSort()
             }
         }
     }
@@ -228,12 +242,57 @@ class BingeModel : ViewModel() {
     fun getUserBinges(userId: String) {
         viewModelScope.launch {
             getBinges(userId)
+            applyFilterAndSort() //filter and sort getting binges
         }
     }
 
     fun deleteBinge(bingeId: String, userId: String){
         viewModelScope.launch {
             deleteUserBinge(bingeId, userId)
+        }
+    }
+
+    fun updateFilter(filter: BingeFilter) {
+        _currentFilter.value = filter
+        applyFilterAndSort()
+    }
+
+    fun updateSort(sort: BingeSort) {
+        _currentSort.value = sort
+        applyFilterAndSort()
+    }
+
+    private fun applyFilterAndSort() {
+        viewModelScope.launch {
+            val filtered = when (_currentFilter.value) {
+                BingeFilter.ALL -> _userBinges.value
+                BingeFilter.MOVIES_ONLY -> _userBinges.value.filter { binge -> binge.entertainmentList.any { it is Movie } && binge.entertainmentList.none { it is TVShow }
+                }
+                BingeFilter.TV_SHOWS_ONLY -> _userBinges.value.filter { binge -> binge.entertainmentList.any { it is TVShow } && binge.entertainmentList.none { it is Movie }
+                }
+            }
+
+            val sorted = when (_currentSort.value) {
+                BingeSort.ALPHABETICAL -> filtered.sortedBy { it.name }
+                BingeSort.PROGRESS -> filtered.sortedByDescending { binge ->
+                    val total = binge.entertainmentList.sumOf {
+                        when (it) {
+                            is Movie -> 1
+                            is TVShow -> it.episodes?.size ?: 0
+                        }
+                    }
+                    val watched = binge.entertainmentList.sumOf {
+                        when (it) {
+                            is Movie -> if (it.watched) 1 else 0
+                            is TVShow -> it.watchedEpisodes.size
+                        }
+                    }
+                    if (total > 0) watched.toFloat() / total else 0f
+                }
+                BingeSort.RECENTLY_UPDATED -> filtered
+            }
+
+            _filteredBinges.value = sorted
         }
     }
 }
