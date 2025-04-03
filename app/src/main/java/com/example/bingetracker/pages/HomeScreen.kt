@@ -49,7 +49,7 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                     Text("Loading...", modifier = Modifier.padding(16.dp))
                 }
                 user != null -> {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    //Spacer(modifier = Modifier.height(8.dp))
                     SearchBar(searchQuery) { query ->
                         searchQuery = query
                         entertainmentModel.searchForEntertainment(query)

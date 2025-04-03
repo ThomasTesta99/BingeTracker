@@ -181,9 +181,8 @@ class BingeModel : ViewModel() {
                     } else item
                 }
                 transaction.update(bingeRef, "entertainmentList", updatedList)
-            }.await() // <-- Await transaction completion explicitly here
+            }.await()
 
-            // ✅ Fetch updated binge list again after transaction
             val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
             userId?.let {
                 getBinges(it)
