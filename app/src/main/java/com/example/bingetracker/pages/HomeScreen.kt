@@ -25,6 +25,14 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
 
     var searchQuery by remember { mutableStateOf("") }
 
+    // Get current filter and sort states
+    val currentFilter by entertainmentModel.currentFilter.collectAsState()
+    val currentSort by entertainmentModel.currentSort.collectAsState()
+
+    // Get filtered content
+    val filteredMovies by entertainmentModel.filteredMovies.collectAsState()
+    val filteredTVShows by entertainmentModel.filteredTVShows.collectAsState()
+
     LaunchedEffect(currentUserAuth) {
         if (currentUserAuth == null) {
             navController.navigate("auth") {
@@ -47,6 +55,16 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                         entertainmentModel.searchForEntertainment(query)
                     }
 
+                    // Add the HomeFilterBar
+                    if (searchQuery.isBlank()) {
+                        HomeFilterBar(
+                            currentFilter = currentFilter,
+                            currentSort = currentSort,
+                            onFilterChanged = { entertainmentModel.updateFilter(it) },
+                            onSortChanged = { entertainmentModel.updateSort(it) }
+                        )
+                    }
+
                     Text(
                         text = if (searchQuery.isNotEmpty()) {
                             "Search results for \"$searchQuery\""
@@ -63,9 +81,11 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                         val tvResults by entertainmentModel.searchTVResults.collectAsState()
                         Entertainment(authModel, entertainmentModel, movieResults, tvResults)
                     } else {
-                        val popularMovies by entertainmentModel.movieList.collectAsState()
-                        val popularTVShows by entertainmentModel.tvShowList.collectAsState()
-                        Entertainment(authModel, entertainmentModel, popularMovies, popularTVShows)
+//                        val popularMovies by entertainmentModel.movieList.collectAsState()
+//                        val popularTVShows by entertainmentModel.tvShowList.collectAsState()
+//                        Entertainment(authModel, entertainmentModel, popularMovies, popularTVShows)
+                        // Use filtered content instead of direct access to movieList/tvShowList
+                        Entertainment(authModel, entertainmentModel, filteredMovies, filteredTVShows)
                     }
                 }
                 else -> {
