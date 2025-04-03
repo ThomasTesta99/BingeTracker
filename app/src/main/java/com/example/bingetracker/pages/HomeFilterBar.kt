@@ -1,15 +1,11 @@
 package com.example.bingetracker.pages
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -25,8 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.bingetracker.data.HomeContentFilter
@@ -41,61 +35,63 @@ fun HomeFilterBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        tonalElevation = 2.dp,
+        tonalElevation = 1.dp,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Content type filter buttons
+            // Filter buttons in a row
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                ToggleButton(
+                SmallToggleButton(
                     text = "All",
                     selected = currentFilter == HomeContentFilter.ALL,
                     onClick = { onFilterChanged(HomeContentFilter.ALL) }
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
-                ToggleButton(
+                SmallToggleButton(
                     text = "Movies",
                     selected = currentFilter == HomeContentFilter.MOVIES,
                     onClick = { onFilterChanged(HomeContentFilter.MOVIES) }
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
 
-                ToggleButton(
+                SmallToggleButton(
                     text = "TV Shows",
                     selected = currentFilter == HomeContentFilter.TV_SHOWS,
                     onClick = { onFilterChanged(HomeContentFilter.TV_SHOWS) }
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Sort options
+            // Sort dropdown on the right side
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Sort by:",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
 
                 var expanded by remember { mutableStateOf(false) }
 
-                TextButton(onClick = { expanded = true }) {
-                    Text(getSortName(currentSort))
+                TextButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.padding(0.dp)
+                ) {
+                    Text(
+                        getSortName(currentSort),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
 
                 DropdownMenu(
@@ -130,13 +126,15 @@ fun HomeFilterBar(
 }
 
 @Composable
-private fun ToggleButton(
+private fun SmallToggleButton(
     text: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
     ElevatedButton(
         onClick = onClick,
+        modifier = Modifier.padding(0.dp),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         colors = ButtonDefaults.elevatedButtonColors(
             containerColor = if (selected)
                 MaterialTheme.colorScheme.primaryContainer
@@ -150,7 +148,8 @@ private fun ToggleButton(
                 MaterialTheme.colorScheme.onPrimaryContainer
             else
                 MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
