@@ -27,6 +27,9 @@ class BingeModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
     private val apiKey = BuildConfig.TMDB_API_KEY
 
+    private val _bingeState = MutableStateFlow<BingeState>(BingeState.Idle)
+    val bingeState : StateFlow<BingeState>  = _bingeState
+
     private val _userBinges = MutableStateFlow<List<Binge>>(emptyList())
     val userBinges: StateFlow<List<Binge>> = _userBinges
 
@@ -45,15 +48,19 @@ class BingeModel : ViewModel() {
 
     private suspend fun deleteUserBinge(bingeId: String, userId: String){
         try {
+            _bingeState.value = BingeState.Loading
             db.collection("binges").document(bingeId).delete().await()
             getUserBinges(userId)
+            _bingeState.value = BingeState.Success
         }catch (e: Exception){
             Log.e("Binge Model", "${e.message}")
+            _bingeState.value = BingeState.Error("${e.message}")
         }
     }
 
     private suspend fun createNewBinge(userId: String, name: String, item: EntertainmentItem) {
         try {
+            _bingeState.value = BingeState.Loading
             val entertainmentList = listOf(item.toStored())
             val newBinge = BingeFireStore(
                 userId = userId,
@@ -65,13 +72,16 @@ class BingeModel : ViewModel() {
             Log.d("BINGEMODEL", "createNewBinge: before add entertainment")
             addEntertainment(document.id, item)
             _bingeId.value = document.id
+            _bingeState.value = BingeState.Success
         } catch (e: Exception) {
             Log.e("BingeModel", "Error creating new binge: ${e.message}")
+            _bingeState.value = BingeState.Error("${e.message}")
         }
     }
 
     private suspend fun getBinges(userId: String) {
         try {
+            _bingeState.value = BingeState.Loading
             val binges = db.collection("binges")
                 .whereEqualTo("userId", userId)
                 .get().await()
@@ -108,53 +118,60 @@ class BingeModel : ViewModel() {
                         )
                     }
                 }
-            Log.d("BINGE MODEL", "getBinges: $binges")
+
             _userBinges.value = binges
+            _bingeState.value = BingeState.Success
         } catch (e: Exception) {
             Log.e("BingeModel", "Error fetching user binges: ${e.message}")
+            _bingeState.value = BingeState.Error("${e.message}")
         }
     }
 
 
     private suspend fun addEntertainment(bingeId: String, entertainment: EntertainmentItem) {
-        val bingeRef = db.collection("binges").document(bingeId)
-        val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
+        try {
+            _bingeState.value = BingeState.Loading
+            val bingeRef = db.collection("binges").document(bingeId)
+            val binge = bingeRef.get().await().toObject(BingeFireStore::class.java)
 
-        Log.d("EPISODE DEBUG", "$bingeRef + $binge")
-        Log.d("BINGEMODEL", "$entertainment")
-        binge?.let {
-            val updatedList = it.entertainmentList.toMutableList()
+            binge?.let {
+                val updatedList = it.entertainmentList.toMutableList()
 
-            val exists = updatedList.any { item -> item.id == entertainment.id }
-            if (!exists) {
-                val storedItem = when (entertainment) {
-                    is TVShow -> {
-                        val episodes = fetchEpisodesForTVShow(entertainment.id)
-                        entertainment.toStored().copy(
-                            episodes = episodes,
-                            totalEpisodes = episodes.size,
-                            type = entertainment.type
-                        )
+                val exists = updatedList.any { item -> item.id == entertainment.id }
+                if (!exists) {
+                    val storedItem = when (entertainment) {
+                        is TVShow -> {
+                            val episodes = fetchEpisodesForTVShow(entertainment.id)
+                            entertainment.toStored().copy(
+                                episodes = episodes,
+                                totalEpisodes = episodes.size,
+                                type = entertainment.type
+                            )
+                        }
+                        is Movie -> {
+                            entertainment.toStored().copy(
+                                type = entertainment.type
+                            )
+                        }
                     }
-                    is Movie -> {
-                        entertainment.toStored().copy(
-                            type = entertainment.type
-                        )
-                    }
+
+                    updatedList.add(storedItem)
+                    bingeRef.update("entertainmentList", updatedList).await()
+                    _bingeState.value = BingeState.Success
+                } else {
+                    Log.d("BINGEMODEL", "Item already exists in binge.")
+                    _bingeState.value = BingeState.Error("Item already exists in binge.")
                 }
-
-                updatedList.add(storedItem)
-                Log.d("BINGEMODEL", "Added new item: $storedItem")
-                bingeRef.update("entertainmentList", updatedList).await()
-            } else {
-                Log.d("BINGEMODEL", "Item already exists in binge.")
             }
+        } catch (e: Exception) {
+             _bingeState.value = BingeState.Error("${e.message}")
         }
     }
 
     private suspend fun fetchEpisodesForTVShow(tvShowId: Int): List<Episode> {
         val episodes = mutableListOf<Episode>()
         try {
+            _bingeState.value = BingeState.Loading
             val response = RetrofitClient.api.getTvShowDetails(tvShowId, apiKey)
 
             val validSeasons = response.seasons.filter { it.seasonNumber > 0 }
@@ -163,30 +180,37 @@ class BingeModel : ViewModel() {
                 val seasonResponse = RetrofitClient.api.getTvSeason(tvShowId, season.seasonNumber, apiKey)
                 episodes.addAll(seasonResponse.episodes)
             }
-
+            _bingeState.value = BingeState.Success
         } catch (e: Exception) {
             Log.e("EntertainmentModel", "Error fetching episodes: ${e.message}")
+            _bingeState.value = BingeState.Error("${e.message}")
         }
         return episodes
     }
 
     fun toggleMovieWatched(bingeId: String, movieId: Int, isWatched: Boolean) {
         viewModelScope.launch {
-            val bingeRef = db.collection("binges").document(bingeId)
-            db.runTransaction { transaction ->
-                val binge = transaction.get(bingeRef).toObject(BingeFireStore::class.java) ?: return@runTransaction
-                val updatedList = binge.entertainmentList.map { item ->
-                    if (item.id == movieId && item.type == EntertainmentType.MOVIE) {
-                        item.copy(watched = isWatched)
-                    } else item
-                }
-                transaction.update(bingeRef, "entertainmentList", updatedList)
-            }.await()
+            try {
+                _bingeState.value = BingeState.Loading
+                val bingeRef = db.collection("binges").document(bingeId)
+                db.runTransaction { transaction ->
+                    val binge = transaction.get(bingeRef).toObject(BingeFireStore::class.java) ?: return@runTransaction
+                    val updatedList = binge.entertainmentList.map { item ->
+                        if (item.id == movieId && item.type == EntertainmentType.MOVIE) {
+                            item.copy(watched = isWatched)
+                        } else item
+                    }
+                    transaction.update(bingeRef, "entertainmentList", updatedList)
+                }.await()
 
-            val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
-            userId?.let {
-                getBinges(it)
-                applyFilterAndSort()
+                val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
+                userId?.let {
+                    getBinges(it)
+                    applyFilterAndSort()
+                }
+                _bingeState.value = BingeState.Success
+            } catch (e: Exception) {
+                _bingeState.value = BingeState.Error("${e.message}")
             }
         }
     }
@@ -200,28 +224,35 @@ class BingeModel : ViewModel() {
         isWatched: Boolean
     ) {
         viewModelScope.launch {
-            val bingeRef = db.collection("binges").document(bingeId)
-            db.runTransaction { transaction ->
-                val binge = transaction.get(bingeRef).toObject(BingeFireStore::class.java) ?: return@runTransaction
-                val updatedList = binge.entertainmentList.map { item ->
-                    if (item.id == tvShowId && item.type == EntertainmentType.TV_SHOW) {
-                        val updatedEpisodes = item.watchedEpisodes.toMutableList()
-                        val episodeWatched = EpisodeWatched(seasonNumber, episodeNumber)
-                        if (isWatched) {
-                            if (!updatedEpisodes.contains(episodeWatched)) updatedEpisodes.add(episodeWatched)
-                        } else {
-                            updatedEpisodes.remove(episodeWatched)
-                        }
-                        item.copy(watchedEpisodes = updatedEpisodes)
-                    } else item
-                }
-                transaction.update(bingeRef, "entertainmentList", updatedList)
-            }.await()
+            try {
+                _bingeState.value = BingeState.Loading
+                val bingeRef = db.collection("binges").document(bingeId)
+                db.runTransaction { transaction ->
+                    val binge = transaction.get(bingeRef).toObject(BingeFireStore::class.java) ?: return@runTransaction
+                    val updatedList = binge.entertainmentList.map { item ->
+                        if (item.id == tvShowId && item.type == EntertainmentType.TV_SHOW) {
+                            val updatedEpisodes = item.watchedEpisodes.toMutableList()
+                            val episodeWatched = EpisodeWatched(seasonNumber, episodeNumber)
+                            if (isWatched) {
+                                if (!updatedEpisodes.contains(episodeWatched)) updatedEpisodes.add(episodeWatched)
+                            } else {
+                                updatedEpisodes.remove(episodeWatched)
+                            }
+                            item.copy(watchedEpisodes = updatedEpisodes)
+                        } else item
+                    }
+                    transaction.update(bingeRef, "entertainmentList", updatedList)
+                }.await()
 
-            val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
-            userId?.let {
-                getBinges(it)
-                applyFilterAndSort()
+                val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
+                userId?.let {
+                    getBinges(it)
+                    applyFilterAndSort()
+                }
+
+                _bingeState.value = BingeState.Success
+            } catch (e: Exception) {
+                _bingeState.value = BingeState.Error("${e.message}")
             }
         }
     }
@@ -321,3 +352,9 @@ fun EntertainmentItem.toStored(): StoredEntertainmentItem {
     }
 }
 
+sealed class BingeState{
+    object Idle : BingeState()
+    object Loading : BingeState()
+    object Success : BingeState()
+    data class Error(val message : String) : BingeState()
+}
