@@ -292,7 +292,7 @@ fun HorizontalProgressBar(binge: Binge) {
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(progress)
-                    .background(Color.Green)
+                    .background(Color(0xFF800080))
             )
         }
     }
