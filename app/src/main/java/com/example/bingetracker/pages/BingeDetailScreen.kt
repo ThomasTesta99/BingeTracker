@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +45,7 @@ import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.TVShow
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.BingeModel
+import com.example.bingetracker.models.BingeState
 
 @Composable
 fun BingeDetailScreen(
@@ -55,6 +58,7 @@ fun BingeDetailScreen(
     val bingeList by bingeModel.userBinges.collectAsState()
     val currentUserAuth by authModel.currentUserAuth.collectAsState()
     var showConfirmDialog by remember { mutableStateOf(false) }
+    val bingeState by bingeModel.bingeState.collectAsState()
 
     LaunchedEffect(currentUserAuth) {
         if (currentUserAuth == null) {
@@ -68,81 +72,87 @@ fun BingeDetailScreen(
         user?.uuid?.let { bingeModel.getUserBinges(it) }
     }
 
-    val bingeState = remember { mutableStateOf<Binge?>(null) }
+    val bingeValue = remember { mutableStateOf<Binge?>(null) }
 
     LaunchedEffect(bingeList) {
-        bingeState.value = bingeList.find { it.id == bingeId }
+        bingeValue.value = bingeList.find { it.id == bingeId }
     }
 
-    bingeState.value?.let { binge ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Text(
-                    text = binge.name,
-                    style = MaterialTheme.typography.headlineMedium,
+    when (bingeState) {
+        is BingeState.Error -> Text(
+            text = (bingeState as BingeState.Error).message,
+            color = Color.Red
+        )
+        else -> {
+            bingeValue.value?.let { binge ->
+                LazyColumn(
                     modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Center
-
-                )
-            }
-
-            items(binge.entertainmentList) { item ->
-                EntertainmentItemDetail(item)
-            }
-
-            item {
-                HorizontalProgressBar(binge)
-            }
-
-            item {
-                ChecklistItems(binge = binge, bingeModel = bingeModel) { updated ->
-                    bingeState.value = updated
-                }
-            }
-            item {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { showConfirmDialog = true }
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text("Delete this binge")
-                }
-                if (showConfirmDialog) {
-                    val context = LocalContext.current
-                    AlertDialog(
-                        onDismissRequest = { showConfirmDialog = false },
-                        title = { Text("Delete this binge") },
-                        text = {
-                            Text("Are you sure you want to delete current binge?")
-                        },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                showConfirmDialog = false
-                                user?.let { bingeModel.deleteBinge(bingeId, it.uuid) }
-                                navController.popBackStack()
-                                Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT)
-                                    .show()
-                            }) {
-                                Text("Yes")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showConfirmDialog = false }) {
-                                Text("Cancel")
-                            }
+                    item {
+                        Text(
+                            text = binge.name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center
+
+                        )
+                    }
+
+                    items(binge.entertainmentList) { item ->
+                        EntertainmentItemDetail(item)
+                    }
+
+                    item {
+                        HorizontalProgressBar(binge)
+                    }
+
+                    item {
+                        ChecklistItems(binge = binge, bingeModel = bingeModel) { updated ->
+                            bingeValue.value = updated
                         }
-                    )
+                    }
+                    item {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { showConfirmDialog = true }
+                        ) {
+                            Text("Delete this binge")
+                        }
+                        if (showConfirmDialog) {
+                            val context = LocalContext.current
+                            AlertDialog(
+                                onDismissRequest = { showConfirmDialog = false },
+                                title = { Text("Delete this binge") },
+                                text = {
+                                    Text("Are you sure you want to delete current binge?")
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        showConfirmDialog = false
+                                        user?.let { bingeModel.deleteBinge(bingeId, it.uuid) }
+                                        navController.popBackStack()
+                                        Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT)
+                                            .show()
+                                    }) {
+                                        Text("Yes")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showConfirmDialog = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
-    } ?: run {
-        Text("Loading binge details...", modifier = Modifier.padding(16.dp))
     }
 }
 
