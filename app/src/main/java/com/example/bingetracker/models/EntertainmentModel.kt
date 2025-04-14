@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class EntertainmentModel : ViewModel() {
+
     private val _movieList = MutableStateFlow<List<Movie>>(emptyList())
     val movieList : StateFlow<List<Movie>> = _movieList
 
@@ -41,6 +42,9 @@ class EntertainmentModel : ViewModel() {
     private val _filteredTVShows = MutableStateFlow<List<TVShow>>(emptyList())
     val filteredTVShows: StateFlow<List<TVShow>> = _filteredTVShows
 
+    private val _entertainmentState = MutableStateFlow<EntertainmentState>(EntertainmentState.Idle)
+    val entertainmentState : StateFlow<EntertainmentState> = _entertainmentState
+
     val apiKey = BuildConfig.TMDB_API_KEY
 
     init {
@@ -52,22 +56,28 @@ class EntertainmentModel : ViewModel() {
 
     suspend fun getPopularMovies(){
         try {
+            _entertainmentState.value = EntertainmentState.Loading
             val response = RetrofitClient.api.getPopularMovies(apiKey)
             _movieList.value = response.results
             applyFilter() // apply filter after fetching
+            _entertainmentState.value = EntertainmentState.Success
         } catch (e: Exception) {
             Log.e("Entertainment Model", "${e.message}")
+            _entertainmentState.value = EntertainmentState.Error("${e.message}")
         }
     }
 
     suspend fun getPopularTvShows(){
         try {
+            _entertainmentState.value = EntertainmentState.Loading
             val response = RetrofitClient.api.getPopularTVShows(apiKey)
             Log.d("Entertainment Model", "${response}")
             _tvShowList.value = response.results
             applyFilter() // Apply filter after fetching
+            _entertainmentState.value = EntertainmentState.Success
         } catch (e: Exception) {
             Log.e("Entertainment Model", "${e.message}")
+            _entertainmentState.value = EntertainmentState.Error("${e.message}")
         }
     }
 
@@ -77,12 +87,15 @@ class EntertainmentModel : ViewModel() {
             _searchTVResults.value = emptyList()
         }else{
             try {
+                _entertainmentState.value = EntertainmentState.Loading
                 val movieResponse = RetrofitClient.api.searchMovies(apiKey, query)
                 val tvResponse = RetrofitClient.api.searchTVShows(apiKey, query)
                 _searchMovieResults.value = movieResponse.results
                 _searchTVResults.value = tvResponse.results
+                _entertainmentState.value = EntertainmentState.Success
             }catch (e: Exception){
                 Log.e("Entertainment Model","${e.message}")
+                _entertainmentState.value = EntertainmentState.Error("${e.message}")
             }
         }
     }
@@ -137,4 +150,11 @@ class EntertainmentModel : ViewModel() {
             }
         }
     }
+}
+
+sealed class EntertainmentState{
+    object Idle : EntertainmentState()
+    object Loading : EntertainmentState()
+    object Success : EntertainmentState()
+    data class Error(val message : String) : EntertainmentState()
 }
