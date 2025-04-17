@@ -23,6 +23,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -47,8 +48,10 @@ import com.example.bingetracker.data.EntertainmentType
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.TVShow
 import com.example.bingetracker.models.AuthModel
+import com.example.bingetracker.models.AuthState
 import com.example.bingetracker.models.BingeModel
 import com.example.bingetracker.models.EntertainmentModel
+import com.example.bingetracker.models.EntertainmentState
 import kotlin.math.log
 
 
@@ -56,7 +59,7 @@ import kotlin.math.log
 fun Entertainment(authModel: AuthModel, entertainmentModel: EntertainmentModel, movieList: List<Movie>, tvShowList: List<TVShow>) {
     val bingeModel : BingeModel = viewModel()
     var selectedItem by remember { mutableStateOf<EntertainmentItem?>(null) }
-
+    val entertainmentState by entertainmentModel.entertainmentState.collectAsState()
     val user = authModel.currentUser.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -65,22 +68,32 @@ fun Entertainment(authModel: AuthModel, entertainmentModel: EntertainmentModel, 
     }
 
     Scaffold{ padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(8.dp)
-            ) {
-                items(movieList){ movie ->
-                    ItemCard(movie){selectedItem = movie}
+
+        when (entertainmentState) {
+            is EntertainmentState.Loading -> CircularProgressIndicator()
+            is EntertainmentState.Error -> Text(
+                text = (entertainmentState as EntertainmentState.Error).message,
+                color = Color.Red
+            )
+            else -> {
+                Column(modifier = Modifier.padding(padding)) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        items(movieList){ movie ->
+                            ItemCard(movie){selectedItem = movie}
+                        }
+                        items(tvShowList){tvShow ->
+                            ItemCard(tvShow) { selectedItem = tvShow }
+                        }
+                    }
                 }
-                items(tvShowList){tvShow ->
-                    ItemCard(tvShow) { selectedItem = tvShow }
+
+                selectedItem?.let{
+                    ItemPopup(item = it, onDismiss = {selectedItem = null}, bingeModel, user.value!!.uuid)
                 }
             }
-        }
-
-        selectedItem?.let{
-            ItemPopup(item = it, onDismiss = {selectedItem = null}, bingeModel, user.value!!.uuid)
         }
     }
 }
