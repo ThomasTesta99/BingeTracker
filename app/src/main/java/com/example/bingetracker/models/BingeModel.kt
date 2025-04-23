@@ -16,11 +16,13 @@ import com.example.bingetracker.data.EpisodeWatched
 import com.example.bingetracker.data.Movie
 import com.example.bingetracker.data.StoredEntertainmentItem
 import com.example.bingetracker.data.TVShow
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDateTime
 
 class BingeModel : ViewModel() {
 
@@ -65,7 +67,8 @@ class BingeModel : ViewModel() {
             val newBinge = BingeFireStore(
                 userId = userId,
                 name = name,
-                entertainmentList = entertainmentList
+                entertainmentList = entertainmentList,
+                lastUpdated = Timestamp.now()
             )
 
             val document = db.collection("binges").add(newBinge).await()
@@ -114,7 +117,8 @@ class BingeModel : ViewModel() {
                                         episodes = stored.episodes ?: emptyList(),
                                     )
                                 }
-                            }
+                            },
+                            lastUpdated = it.lastUpdated
                         )
                     }
                 }
@@ -157,6 +161,7 @@ class BingeModel : ViewModel() {
 
                     updatedList.add(storedItem)
                     bingeRef.update("entertainmentList", updatedList).await()
+                    bingeRef.update("lastUpdated", Timestamp.now()).await()
                     _bingeState.value = BingeState.Success
                 } else {
                     Log.d("BINGEMODEL", "Item already exists in binge.")
@@ -202,7 +207,7 @@ class BingeModel : ViewModel() {
                     }
                     transaction.update(bingeRef, "entertainmentList", updatedList)
                 }.await()
-
+                bingeRef.update("lastUpdated", Timestamp.now()).await()
                 val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
                 userId?.let {
                     getBinges(it)
@@ -243,7 +248,7 @@ class BingeModel : ViewModel() {
                     }
                     transaction.update(bingeRef, "entertainmentList", updatedList)
                 }.await()
-
+                bingeRef.update("lastUpdated", Timestamp.now()).await()
                 val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
                 userId?.let {
                     getBinges(it)
@@ -319,7 +324,7 @@ class BingeModel : ViewModel() {
                     }
                     if (total > 0) watched.toFloat() / total else 0f
                 }
-                BingeSort.RECENTLY_UPDATED -> filtered
+                BingeSort.RECENTLY_UPDATED -> filtered.sortedBy { it.lastUpdated }
             }
 
             _filteredBinges.value = sorted
