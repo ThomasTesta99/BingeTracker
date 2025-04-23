@@ -106,6 +106,7 @@ class BingeModel : ViewModel() {
                                         overview = stored.overview,
                                         watched = stored.watched
                                     )
+
                                     EntertainmentType.TV_SHOW -> TVShow(
                                         id = stored.id,
                                         title = stored.title,
@@ -118,11 +119,10 @@ class BingeModel : ViewModel() {
                                     )
                                 }
                             },
-                            lastUpdated = it.lastUpdated
+                            lastUpdated = it.lastUpdated ?: Timestamp.now()
                         )
                     }
                 }
-
             _userBinges.value = binges
             _bingeState.value = BingeState.Success
         } catch (e: Exception) {
@@ -324,7 +324,7 @@ class BingeModel : ViewModel() {
                     }
                     if (total > 0) watched.toFloat() / total else 0f
                 }
-                BingeSort.RECENTLY_UPDATED -> filtered.sortedBy { it.lastUpdated }
+                BingeSort.RECENTLY_UPDATED -> filtered.sortedByDescending { it.lastUpdated }
             }
 
             _filteredBinges.value = sorted
