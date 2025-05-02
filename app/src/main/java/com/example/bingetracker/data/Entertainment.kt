@@ -20,7 +20,6 @@ data class EpisodeWatched(
     val episodeNumber: Int = 0
 )
 
-// Base Sealed Class
 sealed class EntertainmentItem {
     abstract val id: Int
     abstract val title: String
@@ -34,7 +33,6 @@ enum class EntertainmentType {
     TV_SHOW
 }
 
-// Movie data class now extends EntertainmentItem
 data class Movie(
     override val id: Int,
     override val title: String,
@@ -42,11 +40,11 @@ data class Movie(
     @SerializedName("release_date") val releaseDate: String?,
     override val overview: String,
     val watched: Boolean = false,
+    @SerializedName("vote_average") val rating : Float? = null
 ) : EntertainmentItem() {
     override val type: EntertainmentType = EntertainmentType.MOVIE
 }
 
-// TV Show data class now extends EntertainmentItem
 data class TVShow(
     override val id: Int,
     @SerializedName("original_name") override val title: String,
@@ -56,11 +54,11 @@ data class TVShow(
     val totalEpisodes: Int?,
     val watchedEpisodes: List<EpisodeWatched> = emptyList(),
     val episodes: List<Episode>? = emptyList(),
+    @SerializedName("vote_average") val rating : Float? = null
 ) : EntertainmentItem() {
     override val type: EntertainmentType = EntertainmentType.TV_SHOW
 }
 
-// Responses for Movie and TVShow
 data class MovieResponse(
     val results: List<Movie>
 )

@@ -1,6 +1,7 @@
 package com.example.bingetracker.pages
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,8 +75,10 @@ fun HomeFilterBar(
             }
 
             // Sort dropdown on the right side
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                //verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "Sort by:",
