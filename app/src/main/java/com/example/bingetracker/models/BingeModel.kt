@@ -63,16 +63,14 @@ class BingeModel : ViewModel() {
     private suspend fun createNewBinge(userId: String, name: String, item: EntertainmentItem) {
         try {
             _bingeState.value = BingeState.Loading
-            val entertainmentList = listOf(item.toStored())
             val newBinge = BingeFireStore(
                 userId = userId,
                 name = name,
-                entertainmentList = entertainmentList,
+                entertainmentList = emptyList(),
                 lastUpdated = Timestamp.now()
             )
 
             val document = db.collection("binges").add(newBinge).await()
-            Log.d("BINGEMODEL", "createNewBinge: before add entertainment")
             addEntertainment(document.id, item)
             _bingeId.value = document.id
             _bingeState.value = BingeState.Success
@@ -92,34 +90,16 @@ class BingeModel : ViewModel() {
                 .mapNotNull { document ->
                     val binge = document.toObject(BingeFireStore::class.java)
                     binge?.let {
+                        val entertainmentList = it.entertainmentList.map { stored ->
+                            toItem(stored)
+                        }
                         Binge(
                             id = it.id,
                             userId = it.userId,
                             name = it.name,
-                            entertainmentList = it.entertainmentList.map { stored ->
-                                when (stored.type) {
-                                    EntertainmentType.MOVIE -> Movie(
-                                        id = stored.id,
-                                        title = stored.title,
-                                        posterPath = stored.posterPath,
-                                        releaseDate = stored.releaseDate,
-                                        overview = stored.overview,
-                                        watched = stored.watched
-                                    )
-
-                                    EntertainmentType.TV_SHOW -> TVShow(
-                                        id = stored.id,
-                                        title = stored.title,
-                                        posterPath = stored.posterPath,
-                                        releaseDate = stored.releaseDate,
-                                        overview = stored.overview,
-                                        totalEpisodes = stored.totalEpisodes,
-                                        watchedEpisodes = stored.watchedEpisodes ?: emptyList(),
-                                        episodes = stored.episodes ?: emptyList(),
-                                    )
-                                }
-                            },
-                            lastUpdated = it.lastUpdated ?: Timestamp.now()
+                            entertainmentList = entertainmentList,
+                            lastUpdated = it.lastUpdated ?: Timestamp.now(),
+                            progress = calculateProgress(entertainmentList = entertainmentList)
                         )
                     }
                 }
@@ -142,6 +122,7 @@ class BingeModel : ViewModel() {
                 val updatedList = it.entertainmentList.toMutableList()
 
                 val exists = updatedList.any { item -> item.id == entertainment.id }
+
                 if (!exists) {
                     val storedItem = when (entertainment) {
                         is TVShow -> {
@@ -178,13 +159,14 @@ class BingeModel : ViewModel() {
         try {
             _bingeState.value = BingeState.Loading
             val response = RetrofitClient.api.getTvShowDetails(tvShowId, apiKey)
-
+            Log.d("EPISODES_DEBUG", "Fetched TV details: ${response.name}, seasons: ${response.seasons.size}")
             val validSeasons = response.seasons.filter { it.seasonNumber > 0 }
 
             for (season in validSeasons) {
                 val seasonResponse = RetrofitClient.api.getTvSeason(tvShowId, season.seasonNumber, apiKey)
                 episodes.addAll(seasonResponse.episodes)
             }
+            Log.d("BINGE MODEL", "$episodes")
             _bingeState.value = BingeState.Success
         } catch (e: Exception) {
             Log.e("EntertainmentModel", "Error fetching episodes: ${e.message}")
@@ -210,7 +192,7 @@ class BingeModel : ViewModel() {
                 bingeRef.update("lastUpdated", Timestamp.now()).await()
                 val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
                 userId?.let {
-                    getBinges(it)
+                    updateBingeProgress(bingeId)
                     applyFilterAndSort()
                 }
                 _bingeState.value = BingeState.Success
@@ -251,7 +233,7 @@ class BingeModel : ViewModel() {
                 bingeRef.update("lastUpdated", Timestamp.now()).await()
                 val userId = _userBinges.value.firstOrNull { it.id == bingeId }?.userId
                 userId?.let {
-                    getBinges(it)
+                    updateBingeProgress(bingeId)
                     applyFilterAndSort()
                 }
 
@@ -330,6 +312,17 @@ class BingeModel : ViewModel() {
             _filteredBinges.value = sorted
         }
     }
+
+    private fun updateBingeProgress(bingeId: String) {
+        val updated = _userBinges.value.map { binge ->
+            if (binge.id == bingeId) {
+                val updatedProgress = calculateProgress(binge.entertainmentList)
+                binge.copy(progress = updatedProgress)
+            } else binge
+        }
+        _userBinges.value = updated
+        applyFilterAndSort()
+    }
 }
 
 fun EntertainmentItem.toStored(): StoredEntertainmentItem {
@@ -357,6 +350,44 @@ fun EntertainmentItem.toStored(): StoredEntertainmentItem {
     }
 }
 
+private fun toItem(item:StoredEntertainmentItem): EntertainmentItem{
+    return when(item.type){
+        EntertainmentType.MOVIE -> Movie(
+            id = item.id,
+            title = item.title,
+            posterPath = item.posterPath,
+            overview = item.overview,
+            releaseDate = item.releaseDate,
+            watched = item.watched
+        )
+        EntertainmentType.TV_SHOW -> TVShow(
+            id = item.id,
+            title = item.title,
+            posterPath = item.posterPath,
+            overview = item.overview,
+            releaseDate = item.releaseDate,
+            totalEpisodes = item.totalEpisodes,
+            watchedEpisodes = item.watchedEpisodes,
+            episodes = item.episodes
+        )
+    }
+}
+
+fun calculateProgress(entertainmentList : List<EntertainmentItem>) : Float{
+    val total = entertainmentList.sumOf {
+        when(it){
+            is Movie -> 1
+            is TVShow -> it.totalEpisodes ?: 0
+        }
+    }
+    val watched = entertainmentList.sumOf {
+        when(it){
+            is Movie -> if(it.watched) 1 else 0
+            is TVShow -> it.watchedEpisodes.size
+        }
+    }
+    return if(total > 0) watched.toFloat() / total else 0f
+}
 sealed class BingeState{
     object Idle : BingeState()
     object Loading : BingeState()
