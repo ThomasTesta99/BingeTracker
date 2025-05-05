@@ -120,9 +120,10 @@ fun ItemCard(item : EntertainmentItem, onClick: () -> Unit){
             )
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                fontSize = 12.sp
+                fontSize = 18.sp,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
