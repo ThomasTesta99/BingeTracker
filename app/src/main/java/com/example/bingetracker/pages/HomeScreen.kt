@@ -1,6 +1,8 @@
 package com.example.bingetracker.pages
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
@@ -41,9 +43,12 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
         }
     }
 
-    Scaffold()
-     { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+        ) {
             when {
                 user == null && currentUserAuth != null -> {
                     Text("Loading...", modifier = Modifier.padding(16.dp))
@@ -94,7 +99,7 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
             }
         }
     }
-}
+
 
 @Composable
 fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit) {
@@ -103,7 +108,7 @@ fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit) {
         onValueChange = { onQueryChange(it) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(top = 0.dp, bottom = 8.dp),
         singleLine = true,
         placeholder = { Text("Search movies or TV shows...") }
     )

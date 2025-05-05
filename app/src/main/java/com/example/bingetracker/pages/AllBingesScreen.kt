@@ -23,6 +23,7 @@ import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.AuthState
 import com.example.bingetracker.models.BingeModel
 import com.example.bingetracker.models.BingeState
+import com.example.bingetracker.models.calculateProgress
 
 @Composable
 fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
@@ -121,16 +122,7 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                val total = binge.entertainmentList.sumOf {
-                                    if (it is TVShow) it.episodes?.size ?: 0 else 1
-                                }
-                                val watchedItems = binge.entertainmentList.sumOf {
-                                    when (it) {
-                                        is Movie -> if (it.watched) 1 else 0
-                                        is TVShow -> it.watchedEpisodes?.size ?: 0
-                                    }
-                                }
-                                val progress = if (total > 0) watchedItems.toFloat() / total else 0f
+                                val progress = calculateProgress(binge.entertainmentList)
 
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically

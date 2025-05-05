@@ -46,6 +46,7 @@ import com.example.bingetracker.data.TVShow
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.BingeModel
 import com.example.bingetracker.models.BingeState
+import com.example.bingetracker.models.calculateProgress
 
 @Composable
 fun BingeDetailScreen(
@@ -261,20 +262,7 @@ fun EntertainmentItemDetail(item: EntertainmentItem) {
 
 @Composable
 fun HorizontalProgressBar(binge: Binge) {
-    val totalItems = binge.entertainmentList.sumOf {
-        when (it) {
-            is Movie -> 1
-            is TVShow -> it.episodes?.size ?: 0
-        }
-    }
-    val watchedItems = binge.entertainmentList.sumOf {
-        when (it) {
-            is Movie -> if (it.watched) 1 else 0
-            is TVShow -> it.watchedEpisodes.size ?: 0
-        }
-    }
-
-    val progress = if (totalItems > 0) watchedItems.toFloat() / totalItems else 0f
+    val progress = calculateProgress(binge.entertainmentList)
     val progressPercent = (progress * 100).toInt()
 
     Column(

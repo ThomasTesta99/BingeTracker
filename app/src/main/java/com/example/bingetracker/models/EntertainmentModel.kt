@@ -71,7 +71,6 @@ class EntertainmentModel : ViewModel() {
         try {
             _entertainmentState.value = EntertainmentState.Loading
             val response = RetrofitClient.api.getPopularTVShows(apiKey)
-            Log.d("Entertainment Model", "${response}")
             _tvShowList.value = response.results
             applyFilter() // Apply filter after fetching
             _entertainmentState.value = EntertainmentState.Success
@@ -144,8 +143,8 @@ class EntertainmentModel : ViewModel() {
                     _filteredTVShows.value = _filteredTVShows.value.sortedByDescending { it.releaseDate }
                 }
                 HomeContentSort.RATING -> {
-                    // Would need rating data from API
-                    // For now, we'll leave as is
+                    _filteredMovies.value = _filteredMovies.value.sortedBy{it.rating}
+                    _filteredTVShows.value = _filteredTVShows.value.sortedBy{it.rating}
                 }
             }
         }

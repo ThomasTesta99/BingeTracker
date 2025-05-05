@@ -16,5 +16,6 @@ data class Binge(
     val userId: String = "",
     val name: String = "",
     val entertainmentList: List<EntertainmentItem> = emptyList(),
-    val lastUpdated: Timestamp? = null
+    val lastUpdated: Timestamp? = null,
+    val progress : Float = 0f
 )

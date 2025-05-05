@@ -33,14 +33,12 @@ interface TMDBApi {
         @Query("query") query: String
     ): TVShowResponse
 
-    // TV show details (includes season info)
     @GET("tv/{tv_id}")
     suspend fun getTvShowDetails(
         @Path("tv_id") tvId: Int,
         @Query("api_key") apiKey: String
     ): TvDetailsResponse
 
-    // TV season details (includes episode list)
     @GET("tv/{tv_id}/season/{season_number}")
     suspend fun getTvSeason(
         @Path("tv_id") tvId: Int,

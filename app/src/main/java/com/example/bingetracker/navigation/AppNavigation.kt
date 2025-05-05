@@ -91,6 +91,7 @@ fun BottomNavBar(navController: NavHostController) {
 
 @Composable
 fun TopBar(user : User, authModel: AuthModel){
+    val userName = user.name.substringBefore(' ')
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -99,9 +100,10 @@ fun TopBar(user : User, authModel: AuthModel){
             .padding(top = 32.dp)
     ) {
         Text(
-            text = "Welcome, ${user.name}",
+            text = "Welcome, $userName",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.weight(1f)
+                .padding(16.dp)
         )
 
         Button(
