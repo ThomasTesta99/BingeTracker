@@ -56,8 +56,6 @@ fun AuthScreen(
                 )
             )
     ) {
-        // We can also add some subtle diagonal stripes for additional texture
-        // This is optional, but adds some visual interest
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -88,7 +86,6 @@ fun AuthScreen(
                 modifier = Modifier.padding(bottom = 40.dp)
             )
 
-            // Clapperboard icon - using emoji as you liked it!
             Text(
                 text = "🎬",
                 fontSize = 72.sp,
