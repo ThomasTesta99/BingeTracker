@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -78,11 +80,13 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Spacer(modifier = Modifier.height(48.dp))
             // App title
             Text(
                 text = "Binge Tracker",
                 color = Color.White,
-                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                fontSize = 38.sp,
                 modifier = Modifier.padding(bottom = 40.dp)
             )
 
@@ -122,7 +126,8 @@ fun AuthScreen(
             TextButton(onClick = { isSignUp = !isSignUp }) {
                 Text(
                     text = if (isSignUp) "Already have an account? Sign In" else "Sign Up",
-                    color = Color.White
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }
