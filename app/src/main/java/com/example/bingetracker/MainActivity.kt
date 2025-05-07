@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.navigation.AppNavigation
+import com.example.bingetracker.ui.theme.BingeTrackerTheme
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
@@ -19,7 +20,9 @@ class MainActivity : ComponentActivity() {
         setContent{
             val navController = rememberNavController()
             val authModel: AuthModel = viewModel()
-            AppNavigation(navController, authModel)
+            BingeTrackerTheme {
+                AppNavigation(navController, authModel)
+            }
         }
     }
 }
