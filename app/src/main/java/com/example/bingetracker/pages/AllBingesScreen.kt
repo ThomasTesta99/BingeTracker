@@ -142,7 +142,8 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
                                     Text(
                                         text = "${binge.name} \n ${(progress * 100).toInt()}% watched",
                                         textAlign = TextAlign.Center,
-                                        modifier = Modifier.padding(4.dp)
+                                        modifier = Modifier.padding(4.dp),
+                                        style = MaterialTheme.typography.bodySmall
                                     )
                                 }
 
@@ -170,7 +171,7 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Delete Selected (${selectedBinges.value.size})")
+                            Text("Delete Selected (${selectedBinges.value.size})", style = MaterialTheme.typography.bodySmall)
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -182,7 +183,7 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Cancel")
+                            Text("Cancel", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 } else {

@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -186,7 +187,8 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                     }
                     Text(
                         text = overview ?: "No description available.",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
 
@@ -200,13 +202,16 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                         onClick = { showCreateDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Create Binge")
+                        Text(
+                            text = "Create Binge",
+                            style = MaterialTheme.typography.bodySmall
+                            )
                     }
                     Button(
                         onClick = { showAddDialog = true},
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Add to Existing Binge")
+                        Text("Add to Existing Binge", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

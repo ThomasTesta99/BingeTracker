@@ -1,5 +1,6 @@
 package com.example.bingetracker.pages.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -22,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.bingetracker.R
 import com.example.bingetracker.models.AuthModel
 import com.example.bingetracker.models.AuthState
 
@@ -90,11 +93,18 @@ fun AuthScreen(
                 modifier = Modifier.padding(bottom = 40.dp)
             )
 
-            Text(
-                text = "🎬",
-                fontSize = 72.sp,
+            Image(
+                painter = painterResource(R.drawable.movie_icon),
+                contentDescription = "",
                 modifier = Modifier.padding(bottom = 40.dp)
+                    .size(200.dp)
             )
+
+//            Text(
+//                text = "🎬",
+//                fontSize = 72.sp,
+//                modifier = Modifier.padding(bottom = 40.dp)
+//            )
 
             // Login form
             if (isSignUp) {
