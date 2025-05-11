@@ -1,16 +1,26 @@
 package com.example.bingetracker.pages
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,8 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.bingetracker.data.HomeContentFilter
 import com.example.bingetracker.data.HomeContentSort
 
@@ -35,125 +49,157 @@ fun HomeFilterBar(
     onSortChanged: (HomeContentSort) -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        tonalElevation = 1.dp,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(24.dp),
+                clip = true
+            ),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White.copy(alpha = 0.9f)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .height(48.dp)
+                .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Filter buttons in a row
+            // Filter chips
             Row(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SmallToggleButton(
+                FilterChip(
                     text = "All",
                     selected = currentFilter == HomeContentFilter.ALL,
                     onClick = { onFilterChanged(HomeContentFilter.ALL) }
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
-                SmallToggleButton(
+                FilterChip(
                     text = "Movies",
                     selected = currentFilter == HomeContentFilter.MOVIES,
                     onClick = { onFilterChanged(HomeContentFilter.MOVIES) }
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
-                SmallToggleButton(
-                    text = "TV Shows",
+                FilterChip(
+                    text = "TV",
                     selected = currentFilter == HomeContentFilter.TV_SHOWS,
                     onClick = { onFilterChanged(HomeContentFilter.TV_SHOWS) }
                 )
             }
 
-            // Sort dropdown on the right side
-            Column(
-                //verticalAlignment = Alignment.CenterVertically
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Sort by:",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                var expanded by remember { mutableStateOf(false) }
-
-                TextButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier.padding(0.dp)
-                ) {
-                    Text(
-                        getSortName(currentSort),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Popular") },
-                        onClick = {
-                            onSortChanged(HomeContentSort.POPULARITY)
-                            expanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Newest") },
-                        onClick = {
-                            onSortChanged(HomeContentSort.NEWEST)
-                            expanded = false
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Rating") },
-                        onClick = {
-                            onSortChanged(HomeContentSort.RATING)
-                            expanded = false
-                        }
-                    )
-                }
-            }
+            // Sort dropdown
+            SortDropdown(
+                currentSort = currentSort,
+                onSortChanged = onSortChanged
+            )
         }
     }
 }
 
 @Composable
-private fun SmallToggleButton(
+private fun FilterChip(
     text: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
     ElevatedButton(
         onClick = onClick,
-        modifier = Modifier.padding(0.dp),
+        modifier = Modifier
+            .height(32.dp)
+            .padding(0.dp),
         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
         colors = ButtonDefaults.elevatedButtonColors(
             containerColor = if (selected)
-                MaterialTheme.colorScheme.primaryContainer
+                Color(0xFFAA00FF).copy(alpha = 0.1f)
             else
-                MaterialTheme.colorScheme.surface
+                Color.Transparent
+        ),
+        shape = RoundedCornerShape(24.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 0.dp,
+            pressedElevation = 0.dp
         )
     ) {
         Text(
             text = text,
             color = if (selected)
-                MaterialTheme.colorScheme.onPrimaryContainer
+                Color(0xFFAA00FF)
             else
-                MaterialTheme.colorScheme.onSurface,
+                Color.Gray,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            style = MaterialTheme.typography.bodyMedium
+            fontSize = 12.sp
         )
+    }
+}
+
+@Composable
+private fun SortDropdown(
+    currentSort: HomeContentSort,
+    onSortChanged: (HomeContentSort) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+
+    Box {
+        Row(
+            modifier = Modifier
+                .clickable { expanded = true }
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                getSortName(currentSort),
+                fontSize = 12.sp,
+                color = Color(0xFFAA00FF),
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            Icon(
+                Icons.Default.KeyboardArrowDown,
+                contentDescription = "Sort options",
+                modifier = Modifier
+                    .size(16.dp)
+                    .rotate(rotation),
+                tint = Color(0xFFAA00FF)
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color.White)
+        ) {
+            DropdownMenuItem(
+                text = { Text("Popular", fontSize = 12.sp) },
+                onClick = {
+                    onSortChanged(HomeContentSort.POPULARITY)
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Newest", fontSize = 12.sp) },
+                onClick = {
+                    onSortChanged(HomeContentSort.NEWEST)
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Rating", fontSize = 12.sp) },
+                onClick = {
+                    onSortChanged(HomeContentSort.RATING)
+                    expanded = false
+                }
+            )
+        }
     }
 }
 
