@@ -25,13 +25,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -77,7 +79,9 @@ fun Entertainment(authModel: AuthModel, entertainmentModel: EntertainmentModel, 
 
     Box{
         when (entertainmentState) {
-            is EntertainmentState.Loading -> CircularProgressIndicator()
+            is EntertainmentState.Loading -> CircularProgressIndicator(
+                color = Color.White  // Make loading indicator visible
+            )
             is EntertainmentState.Error -> Text(
                 text = (entertainmentState as EntertainmentState.Error).message,
                 color = Color.Red
@@ -124,7 +128,8 @@ fun ItemCard(item : EntertainmentItem, onClick: () -> Unit){
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 fontSize = 18.sp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White  // Make text white for visibility
             )
         }
     }
@@ -134,7 +139,6 @@ fun ItemCard(item : EntertainmentItem, onClick: () -> Unit){
 fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeModel, userId: String) {
     var showCreateDialog by remember { mutableStateOf(false) }
     var bingeName by remember { mutableStateOf("") }
-
 
     var showAddDialog by remember { mutableStateOf(false) }
     val bingeList by bingeModel.userBinges.collectAsState()
@@ -200,18 +204,29 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                 ) {
                     Button(
                         onClick = { showCreateDialog = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFAA00FF)  // Purple button
+                        )
                     ) {
                         Text(
                             text = "Create Binge",
-                            style = MaterialTheme.typography.bodySmall
-                            )
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White
+                        )
                     }
                     Button(
                         onClick = { showAddDialog = true},
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFAA00FF)  // Purple button
+                        )
                     ) {
-                        Text("Add to Existing Binge", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "Add to Existing Binge",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White
+                        )
                     }
                 }
             }
@@ -249,12 +264,20 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                     Text(text = "Enter a name for your binge:")
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    TextField(
+                    OutlinedTextField(
                         value = bingeName,
                         onValueChange = { bingeName = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Binge Name") },
                         singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White,
+                            unfocusedTextColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedIndicatorColor = Color.Gray,
+                            focusedIndicatorColor = Color(0xFFAA00FF)  // Purple accent
+                        )
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -294,15 +317,21 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
                                     onDismiss()
                                 }
                             },
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = 8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFAA00FF)  // Purple button
+                            )
                         ) {
-                            Text("Create")
+                            Text("Create", color = Color.White)
                         }
 
                         Button(
-                            onClick = { showCreateDialog = false }
+                            onClick = { showCreateDialog = false },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Gray  // Gray button
+                            )
                         ) {
-                            Text("Cancel")
+                            Text("Cancel", color = Color.White)
                         }
                     }
                 }
@@ -384,9 +413,12 @@ fun ItemPopup(item: EntertainmentItem, onDismiss: () -> Unit, bingeModel: BingeM
 
                     Button(
                         onClick = { showAddDialog = false },
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier.align(Alignment.End),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Gray  // Gray button
+                        )
                     ) {
-                        Text("Cancel")
+                        Text("Cancel", color = Color.White)
                     }
                 }
             }
