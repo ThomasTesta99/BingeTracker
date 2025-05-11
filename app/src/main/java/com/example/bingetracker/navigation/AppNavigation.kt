@@ -64,17 +64,8 @@ fun AppNavigation(navController: NavHostController, authModel: AuthModel){
             user?.let { TopBar(it, authModel) }
         },
         bottomBar = {
-            user?.let {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                // Don't show bottom nav on detail screen
-                if (currentRoute != "bingeDetail/{bingeId}") {
-                    FloatingBottomNavBar(navController)
-                }
-            }
-        },
-        containerColor = Color.Transparent  // Make scaffold transparent
+            user?.let { BottomNavBar(navController) }
+        }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {  // Wrap NavHost in Box with padding
             NavHost(navController, startDestination = "auth") {
@@ -98,41 +89,21 @@ fun AppNavigation(navController: NavHostController, authModel: AuthModel){
 }
 
 @Composable
-fun FloatingBottomNavBar(navController: NavHostController) {
-    // Simple navigation bar without the oval background
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = 40.dp,
-                end = 40.dp,
-                bottom = 16.dp,
-                top = 8.dp  // Optional: add a bit of top padding too
-            ),
-        horizontalArrangement = Arrangement.SpaceEvenly, // Distribute icons evenly
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = { navController.navigate("home") },
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                Icons.Filled.Home,
-                contentDescription = "Home",
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp)
+fun BottomNavBar(navController: NavHostController) {
+    BottomAppBar {
+        NavigationBar {
+            NavigationBarItem(
+                icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+                label = { Text("Home") },
+                selected = false,
+                onClick = { navController.navigate("home") }
             )
-        }
 
-        IconButton(
-            onClick = { navController.navigate("binges") },
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.List,
-                contentDescription = "Binges",
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp)
+            NavigationBarItem(
+                icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Binges") },
+                label = { Text("Binges") },
+                selected = false,
+                onClick = { navController.navigate("binges") }
             )
         }
     }
