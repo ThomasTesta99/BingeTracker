@@ -150,7 +150,7 @@ fun TopBar(user: User, authModel: AuthModel){
                 modifier = Modifier.padding(end = 6.dp)
             )
             Text(
-                text = "Binge",
+                text = "Binge Tracker",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
