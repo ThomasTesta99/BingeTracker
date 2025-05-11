@@ -63,6 +63,6 @@ BingeTracker lets you:
 
 3. **Build and run the project in Android Studio.**
 
-## Screenshots
+## Demo
 
-(Screenshots would be displayed here)
+![Image](https://github.com/user-attachments/assets/370ce988-b3c5-44f5-871b-8747eaf86a1f)
