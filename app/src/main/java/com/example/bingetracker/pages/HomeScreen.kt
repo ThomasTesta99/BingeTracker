@@ -151,7 +151,7 @@ fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
         BasicTextField(
             value = searchQuery,

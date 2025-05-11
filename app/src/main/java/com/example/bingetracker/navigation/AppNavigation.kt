@@ -1,5 +1,6 @@
 package com.example.bingetracker.navigation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +39,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,6 +57,7 @@ import com.example.bingetracker.pages.AllBingesScreen
 import com.example.bingetracker.pages.BingeDetailScreen
 import com.example.bingetracker.pages.HomeScreen
 import com.example.bingetracker.pages.auth.AuthScreen
+import com.example.bingetracker.R
 
 @Composable
 fun AppNavigation(navController: NavHostController, authModel: AuthModel){
@@ -138,17 +142,19 @@ fun TopBar(user: User, authModel: AuthModel){
             .background(
                 Color.Black.copy(alpha = 0.7f)
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp)
     ) {
         // Logo/Branding section
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "🎬",
-                fontSize = 20.sp,
-                modifier = Modifier.padding(end = 6.dp)
+            Image(
+                painter = painterResource(R.drawable.movie_icon),
+                contentDescription = "",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(50.dp)
             )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = "Binge Tracker",
                 style = MaterialTheme.typography.titleLarge,

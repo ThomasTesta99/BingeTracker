@@ -253,7 +253,7 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(16.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.White  // White background
                             )

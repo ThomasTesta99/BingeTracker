@@ -137,7 +137,7 @@ fun BingeDetailScreen(
                                     .padding(bottom = 8.dp)
                                     .fillMaxWidth(),
                                 textAlign = TextAlign.Center,
-                                color = Color.White  // Make title white for visibility
+                                color = Color.White,  // Make title white for visibility
                             )
                         }
 
@@ -325,7 +325,8 @@ fun EntertainmentItemDetail(item: EntertainmentItem) {
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 4.dp),
-                    color = Color.Black
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = item.overview,
