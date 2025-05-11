@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -79,76 +82,114 @@ fun BingeDetailScreen(
         bingeValue.value = bingeList.find { it.id == bingeId }
     }
 
-    when (bingeState) {
-        is BingeState.Error -> Text(
-            text = (bingeState as BingeState.Error).message,
-            color = Color.Red
+    // Same gradient as AuthScreen
+    val gradientColors = listOf(
+        Color(0xFF0A0F3D),  // Darker blue at the top
+        Color(0xFF141E61),  // Mid blue
+        Color(0xFF0A1172)   // Slightly lighter blue with a hint of purple
+    )
+
+    // Apply gradient background to entire screen
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = gradientColors
+                )
+            )
+    ) {
+        // Add subtle diagonal texture
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF000000).copy(alpha = 0.05f),  // Very subtle black
+                            Color(0xFF000000).copy(alpha = 0.0f)    // Transparent
+                        ),
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(1000f, 1000f)
+                    )
+                )
         )
-        else -> {
-            bingeValue.value?.let { binge ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    item {
-                        Text(
-                            text = binge.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier
-                                .padding(bottom = 8.dp)
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center
 
-                        )
-                    }
-
-                    items(binge.entertainmentList) { item ->
-                        EntertainmentItemDetail(item)
-                    }
-
-                    item {
-                        HorizontalProgressBar(binge)
-                    }
-
-                    item {
-                        ChecklistItems(binge = binge, bingeModel = bingeModel) { updated ->
-                            bingeValue.value = updated
-                        }
-                    }
-                    item {
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { showConfirmDialog = true }
-                        ) {
-                            Text("Delete this binge")
-                        }
-                        if (showConfirmDialog) {
-                            val context = LocalContext.current
-                            AlertDialog(
-                                onDismissRequest = { showConfirmDialog = false },
-                                title = { Text("Delete this binge") },
-                                text = {
-                                    Text("Are you sure you want to delete current binge?")
-                                },
-                                confirmButton = {
-                                    TextButton(onClick = {
-                                        showConfirmDialog = false
-                                        user?.let { bingeModel.deleteBinge(bingeId, it.uuid) }
-                                        navController.popBackStack()
-                                        Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT)
-                                            .show()
-                                    }) {
-                                        Text("Yes")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showConfirmDialog = false }) {
-                                        Text("Cancel")
-                                    }
-                                }
+        when (bingeState) {
+            is BingeState.Error -> Text(
+                text = (bingeState as BingeState.Error).message,
+                color = Color.Red,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            else -> {
+                bingeValue.value?.let { binge ->
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            Text(
+                                text = binge.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier
+                                    .padding(bottom = 8.dp)
+                                    .fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                color = Color.White  // Make title white for visibility
                             )
+                        }
+
+                        items(binge.entertainmentList) { item ->
+                            EntertainmentItemDetail(item)
+                        }
+
+                        item {
+                            HorizontalProgressBar(binge)
+                        }
+
+                        item {
+                            ChecklistItems(binge = binge, bingeModel = bingeModel) { updated ->
+                                bingeValue.value = updated
+                            }
+                        }
+                        item {
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = { showConfirmDialog = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Red  // Red for delete button
+                                )
+                            ) {
+                                Text("Delete this binge", color = Color.White)
+                            }
+                            if (showConfirmDialog) {
+                                val context = LocalContext.current
+                                AlertDialog(
+                                    onDismissRequest = { showConfirmDialog = false },
+                                    title = { Text("Delete this binge", color = Color.Black) },
+                                    text = {
+                                        Text("Are you sure you want to delete current binge?", color = Color.Black)
+                                    },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            showConfirmDialog = false
+                                            user?.let { bingeModel.deleteBinge(bingeId, it.uuid) }
+                                            navController.popBackStack()
+                                            Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT)
+                                                .show()
+                                        }) {
+                                            Text("Yes", color = Color.Red)
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showConfirmDialog = false }) {
+                                            Text("Cancel", color = Color.Gray)
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -163,69 +204,92 @@ fun ChecklistItems(
     bingeModel: BingeModel,
     onBingeUpdate: (Binge) -> Unit
 ) {
-    Column {
-        binge.entertainmentList.forEachIndexed { index, item ->
-            when (item) {
-                is Movie -> {
-                    val isWatchedState = remember { mutableStateOf(item.watched) }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = isWatchedState.value,
-                            onCheckedChange = { checked ->
-                                isWatchedState.value = checked
-                                bingeModel.toggleMovieWatched(binge.id, item.id, checked)
-
-                                val updatedList = binge.entertainmentList.toMutableList()
-                                updatedList[index] = item.copy(watched = checked)
-                                onBingeUpdate(binge.copy(entertainmentList = updatedList))
-                            }
-                        )
-                        Text(text = item.title)
-                    }
-                }
-
-                is TVShow -> {
-                    Text(
-                        text = item.title,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                    )
-                    item.episodes?.forEach { episode ->
-                        val watchedState = remember {
-                            mutableStateOf(
-                                item.watchedEpisodes.any {
-                                    it.seasonNumber == episode.seasonNumber &&
-                                            it.episodeNumber == episode.episodeNumber
-                                }
-                            )
-                        }
-
+    // Container with semi-transparent white background for better visibility
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Color.White.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp)
+    ) {
+        Column {
+            binge.entertainmentList.forEachIndexed { index, item ->
+                when (item) {
+                    is Movie -> {
+                        val isWatchedState = remember { mutableStateOf(item.watched) }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
-                                checked = watchedState.value,
+                                checked = isWatchedState.value,
                                 onCheckedChange = { checked ->
-                                    watchedState.value = checked
-                                    bingeModel.toggleEpisodeWatched(
-                                        binge.id, item.id,
-                                        episode.seasonNumber, episode.episodeNumber,
-                                        checked
-                                    )
+                                    isWatchedState.value = checked
+                                    bingeModel.toggleMovieWatched(binge.id, item.id, checked)
 
                                     val updatedList = binge.entertainmentList.toMutableList()
-                                    val updatedEpisodes = item.watchedEpisodes.toMutableList()
-                                    val watchedEp = EpisodeWatched(
-                                        seasonNumber = episode.seasonNumber,
-                                        episodeNumber = episode.episodeNumber
-                                    )
-
-                                    if (checked) updatedEpisodes.add(watchedEp)
-                                    else updatedEpisodes.remove(watchedEp)
-
-                                    updatedList[index] = item.copy(watchedEpisodes = updatedEpisodes)
+                                    updatedList[index] = item.copy(watched = checked)
                                     onBingeUpdate(binge.copy(entertainmentList = updatedList))
-                                }
+                                },
+                                colors = CheckboxDefaults.colors(
+                                    checkmarkColor = Color.White,
+                                    checkedColor = Color(0xFFAA00FF)  // Purple accent
+                                )
                             )
-                            Text(text = "S${episode.seasonNumber} E${episode.episodeNumber}: ${episode.title}")
+                            Text(text = item.title, color = Color.Black)
+                        }
+                    }
+
+                    is TVShow -> {
+                        Text(
+                            text = item.title,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                            color = Color.Black
+                        )
+                        item.episodes?.forEach { episode ->
+                            val watchedState = remember {
+                                mutableStateOf(
+                                    item.watchedEpisodes.any {
+                                        it.seasonNumber == episode.seasonNumber &&
+                                                it.episodeNumber == episode.episodeNumber
+                                    }
+                                )
+                            }
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = watchedState.value,
+                                    onCheckedChange = { checked ->
+                                        watchedState.value = checked
+                                        bingeModel.toggleEpisodeWatched(
+                                            binge.id, item.id,
+                                            episode.seasonNumber, episode.episodeNumber,
+                                            checked
+                                        )
+
+                                        val updatedList = binge.entertainmentList.toMutableList()
+                                        val updatedEpisodes = item.watchedEpisodes.toMutableList()
+                                        val watchedEp = EpisodeWatched(
+                                            seasonNumber = episode.seasonNumber,
+                                            episodeNumber = episode.episodeNumber
+                                        )
+
+                                        if (checked) updatedEpisodes.add(watchedEp)
+                                        else updatedEpisodes.remove(watchedEp)
+
+                                        updatedList[index] = item.copy(watchedEpisodes = updatedEpisodes)
+                                        onBingeUpdate(binge.copy(entertainmentList = updatedList))
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkmarkColor = Color.White,
+                                        checkedColor = Color(0xFFAA00FF)  // Purple accent
+                                    )
+                                )
+                                Text(
+                                    text = "S${episode.seasonNumber} E${episode.episodeNumber}: ${episode.title}",
+                                    color = Color.Black
+                                )
+                            }
                         }
                     }
                 }
@@ -236,26 +300,39 @@ fun ChecklistItems(
 
 @Composable
 fun EntertainmentItemDetail(item: EntertainmentItem) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
+    // Card with semi-transparent white background
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Color.White.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(8.dp)
     ) {
-        AsyncImage(
-            model = "https://image.tmdb.org/t/p/w500${item.posterPath}",
-            contentDescription = item.title,
-            modifier = Modifier.height(100.dp)
-        )
-        Column {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 4.dp)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            AsyncImage(
+                model = "https://image.tmdb.org/t/p/w500${item.posterPath}",
+                contentDescription = item.title,
+                modifier = Modifier.height(100.dp)
             )
-            Text(
-                text = item.overview,
-                style = MaterialTheme.typography.bodySmall
-            )
+            Column {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    color = Color.Black
+                )
+                Text(
+                    text = item.overview,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
@@ -275,7 +352,8 @@ fun HorizontalProgressBar(binge: Binge) {
             text = "Watched: $progressPercent%",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
+            color = Color.White  // Make progress text white
         )
 
         Box(
@@ -290,7 +368,7 @@ fun HorizontalProgressBar(binge: Binge) {
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(progress)
-                    .background(Color(0xFF800080))
+                    .background(Color(0xFFAA00FF))  // Purple progress bar
             )
         }
     }
