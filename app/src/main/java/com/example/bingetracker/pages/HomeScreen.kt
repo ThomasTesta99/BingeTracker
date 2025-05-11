@@ -1,18 +1,26 @@
 package com.example.bingetracker.pages
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.bingetracker.models.AuthModel
@@ -43,18 +51,53 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
         }
     }
 
+    // Same gradient as AuthScreen
+    val gradientColors = listOf(
+        Color(0xFF0A0F3D),  // Darker blue at the top
+        Color(0xFF141E61),  // Mid blue
+        Color(0xFF0A1172)   // Slightly lighter blue with a hint of purple
+    )
 
-    Column(
+    // Apply gradient background to entire screen
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = gradientColors
+                )
+            )
+    ) {
+        // Add subtle diagonal texture
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF000000).copy(alpha = 0.05f),  // Very subtle black
+                            Color(0xFF000000).copy(alpha = 0.0f)    // Transparent
+                        ),
+                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        end = androidx.compose.ui.geometry.Offset(1000f, 1000f)
+                    )
+                )
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
             when {
                 user == null && currentUserAuth != null -> {
-                    Text("Loading...", modifier = Modifier.padding(16.dp))
+                    Text(
+                        "Loading...",
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.White  // Make text visible on dark background
+                    )
                 }
                 user != null -> {
-                    //Spacer(modifier = Modifier.height(8.dp))
                     SearchBar(searchQuery) { query ->
                         searchQuery = query
                         entertainmentModel.searchForEntertainment(query)
@@ -79,6 +122,7 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(16.dp),
                         textAlign = TextAlign.Center,
+                        color = Color.White  // Make title white for visibility
                     )
 
                     if (searchQuery.isNotBlank()) {
@@ -86,30 +130,76 @@ fun HomeScreen(navController: NavHostController, authModel: AuthModel) {
                         val tvResults by entertainmentModel.searchTVResults.collectAsState()
                         Entertainment(authModel, entertainmentModel, movieResults, tvResults)
                     } else {
-//                        val popularMovies by entertainmentModel.movieList.collectAsState()
-//                        val popularTVShows by entertainmentModel.tvShowList.collectAsState()
-//                        Entertainment(authModel, entertainmentModel, popularMovies, popularTVShows)
-                        // Use filtered content instead of direct access to movieList/tvShowList
                         Entertainment(authModel, entertainmentModel, filteredMovies, filteredTVShows)
                     }
                 }
                 else -> {
-                    Text(text = "Not logged in", modifier = Modifier.padding(16.dp))
+                    Text(
+                        text = "Not logged in",
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.White  // Make text visible on dark background
+                    )
                 }
             }
         }
     }
-
+}
 
 @Composable
 fun SearchBar(searchQuery: String, onQueryChange: (String) -> Unit) {
-    TextField(
-        value = searchQuery,
-        onValueChange = { onQueryChange(it) },
+    // Super compact search bar
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 0.dp, bottom = 8.dp),
-        singleLine = true,
-        placeholder = { Text("Search movies or TV shows...") }
-    )
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+    ) {
+        BasicTextField(
+            value = searchQuery,
+            onValueChange = { onQueryChange(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(38.dp)
+                .shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(19.dp)
+                )
+                .background(
+                    Color.White.copy(alpha = 0.95f),
+                    shape = RoundedCornerShape(19.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = 13.sp,
+                color = Color.Black
+            ),
+            decorationBox = { innerTextField ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (searchQuery.isEmpty()) {
+                            Text(
+                                "Search movies or TV shows...",
+                                color = Color.Gray,
+                                fontSize = 13.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            }
+        )
+    }
 }
