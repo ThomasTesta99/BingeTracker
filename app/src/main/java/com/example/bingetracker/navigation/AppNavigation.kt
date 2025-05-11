@@ -90,20 +90,36 @@ fun AppNavigation(navController: NavHostController, authModel: AuthModel){
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
-    BottomAppBar {
-        NavigationBar {
+    BottomAppBar(
+        containerColor = Color.Black.copy(alpha = 0.7f)  // Match the top bar color
+    ) {
+        NavigationBar(
+            containerColor = Color.Transparent  // Make NavigationBar transparent to show BottomAppBar color
+        ) {
             NavigationBarItem(
                 icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
                 label = { Text("Home") },
                 selected = false,
-                onClick = { navController.navigate("home") }
+                onClick = { navController.navigate("home") },
+                colors = NavigationBarItemDefaults.colors(
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White,
+                    selectedIconColor = Color.White,
+                    selectedTextColor = Color.White
+                )
             )
 
             NavigationBarItem(
                 icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Binges") },
                 label = { Text("Binges") },
                 selected = false,
-                onClick = { navController.navigate("binges") }
+                onClick = { navController.navigate("binges") },
+                colors = NavigationBarItemDefaults.colors(
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White,
+                    selectedIconColor = Color.White,
+                    selectedTextColor = Color.White
+                )
             )
         }
     }
