@@ -79,9 +79,16 @@ fun Entertainment(authModel: AuthModel, entertainmentModel: EntertainmentModel, 
 
     Box{
         when (entertainmentState) {
-            is EntertainmentState.Loading -> CircularProgressIndicator(
-                color = Color.White  // Make loading indicator visible
-            )
+            is EntertainmentState.Loading ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ){
+                    CircularProgressIndicator(
+                        color = Color.White,
+                    )
+                }
             is EntertainmentState.Error -> Text(
                 text = (entertainmentState as EntertainmentState.Error).message,
                 color = Color.Red
