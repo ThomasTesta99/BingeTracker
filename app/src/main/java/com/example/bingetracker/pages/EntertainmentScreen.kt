@@ -128,7 +128,7 @@ fun ItemCard(item : EntertainmentItem, onClick: () -> Unit){
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 fontSize = 18.sp,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 color = Color.White  // Make text white for visibility
             )
         }
