@@ -208,14 +208,14 @@ fun AllBingesScreen(navController: NavController, authModel: AuthModel) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Button(
                                 onClick = {
                                     showConfirmDialog = true
                                 },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).padding(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Red  // Red for delete
                                 )
